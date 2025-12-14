@@ -20,7 +20,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
                                                  section_injector,
                                                  Y_oxidizer,
                                                  Swr_fun,Pr_fun,combustion_final_radius,grain_length,
-                                                 Y_fuel,T_abs,cp_abs,rho_abs,hv,
+                                                 Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                                                  gas,HEOS,fulloutput=False):
     combustion_radius = z[0] # combustion radius
     mc = z[1] # combustor mass
@@ -57,7 +57,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     mdot_fuel,T_burnt_products,Y_burnt_products,h_reactants_mix,regression_rate = libCombRegRate.solveCombustion(
                       h_fuel,Y_fuel,pc,h_oxidizer,Y_oxidizer,
                       T_abs,cp_abs,rho_abs,hv,area_combustion,
-                      mdot_oxidizer,section_combustor,combustor_length,gas)
+                      mdot_oxidizer,section_combustor,combustor_length,combustion_eff,gas)
     mdot_reactants = mdot_oxidizer+mdot_fuel
     dmcdt = mdot_reactants-massflow_throat
     dUdct = mdot_reactants*h_reactants_mix-massflow_throat*hc
@@ -89,7 +89,7 @@ def combustion_quenching(t,z,section_nozzle,
                         section_injector,
                         Y_oxidizer,
                         Swr_fun,Pr_fun,combustion_final_radius,grain_length,
-                        Y_fuel,T_abs,cp_abs,rho_abs,hv,
+                        Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                         gas,HEOS):
     return(combustion_final_radius-z[0])
 
@@ -137,6 +137,7 @@ section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
 rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
 hv = 1.8e6 # J/kg
+combustion_eff = 0.8
 Swr_fun,Pr_fun,combustion_final_radius,grain_length = libCombRegRate.combustionBurningGrainGeometry(grainType='Circular_1')
 mo0 = HEOS.rhomass()*volume_oxidizer
 Uo0 = mo0*HEOS.umass()
@@ -151,8 +152,8 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 12
-t_eval = np.linspace(0,tf,10000)
+tf = 10
+t_eval = np.linspace(0,tf,100)
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 method='LSODA',t_eval=t_eval,events=combustion_quenching, 
                 args=(
@@ -162,7 +163,7 @@ sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 section_injector,
                 Y_oxidizer,
                 Swr_fun,Pr_fun,combustion_final_radius,grain_length,
-                Y_fuel,T_abs,cp_abs,rho_abs,hv,
+                Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                 gas,HEOS),
                 max_step=0.1)
 
@@ -187,7 +188,7 @@ for i,t in enumerate(t_eval):
                                                                                                              section_injector,
                                                                                                              Y_oxidizer,
                                                                                                              Swr_fun,Pr_fun,combustion_final_radius,grain_length,
-                                                                                                             Y_fuel,T_abs,cp_abs,rho_abs,hv,
+                                                                                                             Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                                                                                                              gas,HEOS,fulloutput=True)
     pcs[i] = pc
     Tcs[i] = Tc
