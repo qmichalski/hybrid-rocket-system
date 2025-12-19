@@ -16,7 +16,8 @@ from CoolProp.CoolProp import PropsSI as propsi
 from scipy.integrate import solve_ivp
 mech = 'Mevel2017.yaml'
 
-#Functions stored at end
+#all outputs in m, m^2 and m^3
+#Functions
 #solver for Addapted Finocyl surface area, cross section , volume
 def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius):
     graincentreradius = graincentreradius + geometry_scalar
@@ -111,7 +112,7 @@ if typeofgrain == 'Addapted Finocyl':
     
     regression_vs_Surface_area_curve = Chebyshev.fit(geometry_scalars ,surface_area_finocyl , deg=6)
 
-    graph.plot(geometry_scalar ,surface_area_finocyl)
+    graph.plot(geometry_scalars ,surface_area_finocyl)
     graph.xlabel("regression (m)")
     graph.ylabel("surface area finocyl(m^2)")
     graph.title('regression vs Surface area')
@@ -120,7 +121,7 @@ if typeofgrain == 'Addapted Finocyl':
     
     regression_vs_grain_cross_section_curve = Chebyshev.fit(geometry_scalars ,grain_cross_section_finocyl , deg=6)
 
-    graph.plot(geometry_scalar ,grain_cross_section_finocyl)
+    graph.plot(geometry_scalars ,grain_cross_section_finocyl)
     graph.ylabel("regression (m)")
     graph.xlabel("grain cross section finocyl(m^2)")
     graph.title('regression vs Surface area')
@@ -129,7 +130,7 @@ if typeofgrain == 'Addapted Finocyl':
     
     regression_vs_volume_curve = Chebyshev.fit(geometry_scalars ,grain_volume_finocyl , deg=6)
 
-    graph.plot(geometry_scalar ,surface_area_finocyl)
+    graph.plot(geometry_scalars ,surface_area_finocyl)
     graph.ylabel("regression (m)")
     graph.xlabel("grain volume finocyl(m^3)")
     graph.title('regression vs volume') 
