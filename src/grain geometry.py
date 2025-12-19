@@ -23,17 +23,22 @@ def graingeometry(geometry_scalar,grainlength,armheight,armwidth,numberofarms,gr
     armheight = armheight + geometry_scalar
     armwidth = armwidth + geometry_scalar
     burn_fillet = geometry_scalar
-    burn_fillet_area = (burn_fillet**2 - (math.pi*burn_fillet**2))*(numberofarms*2) #accounts for the change in geometery as the sharp corners burn away
+    burn_fillet_area = (burn_fillet**2 - (math.pi*burn_fillet**2))*(numberofarms*2) #accounts for the change in geometery area as the sharp corners burn away
     angle = math.asin((armwidth/2)/graincentreradius) * 2
     arclength = angle*2*graincentreradius
     arcarea = ((graincentreradius**2)*angle/2)-((1/2)*(graincentreradius**2)*math.sin(angle))
     rectanglesubtraction = grainlength*arclength*numberofarms
     boresurfacearea = math.pi*2*graincentreradius*grainlength
-    rectanglearea = (grainlength*armheight*numberofarms*2)+(armwidth*grainlength*numberofarms)
-    if rectanglesubtraction > boresurfacearea and (armheight+graincentreradius):
+    rectanglearea = (grainlength*(armheight-burn_fillet)*numberofarms*2)+((armwidth-burn_fillet)*grainlength*numberofarms)+(((2 * math.pi* burn_fillet)/4)*grainlength)
+    
+    if rectanglesubtraction > boresurfacearea and (armheight+graincentreradius) < chamber_outer_radius :
+        
         grainsurfacearea = rectanglearea
         graincrosssection = ((3*(3)**(1/2))/2)*(armwidth**2)+(armheight*armwidth*numberofarms)-burn_fillet_area
         Volumeofgrain = graincrosssection*grainlength
+        
+    elif(armwidth*grainlength*numberofarms) > chamber_outer_radius:
+        
     else:
         grainsurfacearea = (boresurfacearea-rectanglesubtraction)+rectanglearea
         graincrosssection = math.pi*graincentreradius**2+(armheight*armwidth*numberofarms)- arcarea*numberofarms - burn_fillet_area
