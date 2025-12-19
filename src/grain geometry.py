@@ -21,7 +21,7 @@ mech = 'Mevel2017.yaml'
 #solver for Addapted Finocyl surface area, cross section , volume
 def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius):
     graincentreradius = graincentreradius + geometry_scalar
-    armwidth = armwidth + geometry_scalar
+    armwidth = (armwidth + geometry_scalar)
     burn_fillet = geometry_scalar
     burn_fillet_area = (burn_fillet**2 - (math.pi*burn_fillet**2))*(numberofarms*2) #accounts for the change in geometery area as the sharp corners burn away
     angle = math.asin((armwidth/2)/graincentreradius) * 2
@@ -79,14 +79,15 @@ if typeofgrain == 'Addapted Finocyl':
     surface_area_finocyl = []
     grain_cross_section_finocyl = []
     grain_volume_finocyl = []
+    tracker = []
     
     for geometry_scalar in geometry_scalars:
         
-        rainsurfacearea,graincrosssection,Volumeofgrain,armheight,armwidth,graincentreradius = graingeometry_finocyl(geometry_scalar, grainlength, armheight, armwidth, numberofarms, graincentreradius)
+        grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidth,graincentreradius = graingeometry_finocyl(geometry_scalar, grainlength, armheight, armwidth, numberofarms, graincentreradius)
         surface_area_finocyl.append(grainsurfacearea)
         grain_cross_section_finocyl.append(graincrosssection)
         grain_volume_finocyl.append(volumeofgrain)
-        
+        tracker.append(armwidth)# for troublshooting
     ''' 
     #could not get to work
     y0 = numpy.zeros(5) # = [0,0]
@@ -122,17 +123,17 @@ if typeofgrain == 'Addapted Finocyl':
     regression_vs_grain_cross_section_curve = Chebyshev.fit(geometry_scalars ,grain_cross_section_finocyl , deg=6)
 
     graph.plot(geometry_scalars ,grain_cross_section_finocyl)
-    graph.ylabel("regression (m)")
-    graph.xlabel("grain cross section finocyl(m^2)")
-    graph.title('regression vs Surface area')
+    graph.xlabel("regression (m)")
+    graph.ylabel("grain cross section finocyl(m^2)")
+    graph.title('regression vs cross section')
     graph.grid()
     graph.show()
     
     regression_vs_volume_curve = Chebyshev.fit(geometry_scalars ,grain_volume_finocyl , deg=6)
 
-    graph.plot(geometry_scalars ,surface_area_finocyl)
-    graph.ylabel("regression (m)")
-    graph.xlabel("grain volume finocyl(m^3)")
+    graph.plot(geometry_scalars ,grain_volume_finocyl)
+    graph.xlabel("regression (m)")
+    graph.ylabel("grain volume finocyl(m^3)")
     graph.title('regression vs volume') 
     graph.grid()
     graph.show()
