@@ -31,18 +31,21 @@ def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numbero
     boresurfacearea = math.pi*2*graincentreradiusupdate*grainlength
     rectangle_surface_area = (grainlength*(armheight-burn_fillet)*numberofarms*2)+((armwidthupdate-burn_fillet)*grainlength*numberofarms)+(((2 * math.pi* burn_fillet)/4)*grainlength)
     
-    if rectanglesubtraction > boresurfacearea and (armheight+graincentreradiusupdate) < chamber_outer_radius :
-        
+    if  (boresurfacearea - rectanglesubtraction) <  0 and (armheight+graincentreradiusupdate) < chamber_outer_radius :
+        print ('error')
+        print (rectanglesubtraction,boresurfacearea)
+        print (armheight+graincentreradiusupdate)
         grainsurfacearea = rectangle_surface_area
-        graincrosssection = ((3*(3)**(1/2))/2)*(armwidthupdate**2)+(armheight*armwidthupdate*numberofarms)-burn_fillet_area
+        graincrosssection = ((3*((3)**(1/2)))/2)*(armwidthupdate**2)+(armheight*armwidthupdate*numberofarms)-burn_fillet_area
         Volumeofgrain = graincrosssection*grainlength
         
     else:
-        grainsurfacearea = (boresurfacearea-rectanglesubtraction)+rectangle_surface_area
+        grainsurfacearea = (boresurfacearea+rectangle_surface_area-rectanglesubtraction)
         graincrosssection = math.pi*graincentreradiusupdate**2+(armheight*armwidthupdate*numberofarms)- arcarea*numberofarms - burn_fillet_area
         Volumeofgrain = graincrosssection*grainlength
+        print ('pain')
         
-    return(grainsurfacearea,graincrosssection,Volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate)    
+    return(grainsurfacearea,graincrosssection,Volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction)    
 
         
     """ #dead code may be needed if calculating area after failure point.
@@ -73,7 +76,7 @@ if typeofgrain == 'Addapted Finocyl':
     volumeofgrain = graincrosssection*grainlength
     
     #grain calculation
-    final_offset = chamber_outer_radius-graincentreradius
+    final_offset = chamber_outer_radius-(graincentreradius+armheight)
     geometry_scalars = numpy.linspace(0,final_offset,1000)
     
     surface_area_finocyl = []
@@ -83,11 +86,11 @@ if typeofgrain == 'Addapted Finocyl':
     
     for geometry_scalar in geometry_scalars:
         
-        grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate = graingeometry_finocyl(geometry_scalar, grainlength, armheight, armwidth, numberofarms, graincentreradius)
+        rectanglesubtraction,grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate = graingeometry_finocyl(geometry_scalar, grainlength, armheight, armwidth, numberofarms, graincentreradius)
         surface_area_finocyl.append(grainsurfacearea)
         grain_cross_section_finocyl.append(graincrosssection)
         grain_volume_finocyl.append(volumeofgrain)
-        tracker.append(armwidthupdate)# for troublshooting
+        tracker.append(rectanglesubtraction)# for troublshooting
     ''' 
     #could not get to work
     y0 = numpy.zeros(5) # = [0,0]
