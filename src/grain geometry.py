@@ -20,6 +20,10 @@ from scipy.integrate import solve_ivp
 #solver for Addapted Finocyl surface area, cross section , volume
 def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius):
     graincentreradiusupdate = graincentreradius + geometry_scalar
+    a=(((graincentreradius+geometry_scalar)**2)-(armwidth/2)**2)**(1/2)-((graincentreradius**2-(armwidth/2)**2))**(1/2)
+    b=(((graincentreradius+geometry_scalar)**2)-((armwidth/2)**2))**(1/2)-(((graincentreradius+geometry_scalar)**2) - ((armwidth+(geometry_scalar*2))/2)**2)**(1/2)
+    c = a-b
+    armheightupdate = (armheight+geometry_scalar)- c
     armwidthupdate = (armwidth + (geometry_scalar*2))
     burn_fillet = geometry_scalar
     burn_fillet_area = ((burn_fillet**2) - ((math.pi*burn_fillet**2))/4)*(numberofarms*2) #accounts for the change in geometery area as the sharp corners burn away
@@ -28,10 +32,10 @@ def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numbero
     arcarea = ((graincentreradiusupdate**2)*angle/2)-((1/2)*(graincentreradiusupdate**2)*math.sin(angle))
     rectanglesubtraction = (grainlength*arclength*numberofarms)
     boresurfacearea = math.pi*2*graincentreradiusupdate*grainlength
-    rectangle_surface_area = (grainlength*(armheight-burn_fillet)*numberofarms*2)+((armwidthupdate-(burn_fillet*2))*grainlength*numberofarms)+((((2 * math.pi* burn_fillet)/4)*grainlength)*numberofarms*2)
+    rectangle_surface_area = (grainlength*(armheightupdate-burn_fillet)*numberofarms*2)+((armwidthupdate-(burn_fillet*2))*grainlength*numberofarms)+((((2 * math.pi* burn_fillet)/4)*grainlength)*numberofarms*2)
     print (rectanglesubtraction)
     
-    if  (boresurfacearea - rectanglesubtraction) <  0 and (armheight+graincentreradiusupdate) < chamber_outer_radius :
+    if  (boresurfacearea - rectanglesubtraction) <  0 and (armheightupdate+graincentreradiusupdate) < chamber_outer_radius :
         print ('error')
         grainsurfacearea = rectangle_surface_area
         graincrosssection = ((3*((3)**(1/2)))/2)*(armwidthupdate**2)+(armheight*armwidthupdate*numberofarms)-burn_fillet_area
