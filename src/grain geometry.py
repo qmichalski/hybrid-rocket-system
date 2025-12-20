@@ -14,7 +14,6 @@ from numpy.polynomial import Chebyshev
 import CoolProp.CoolProp as coolprop
 from CoolProp.CoolProp import PropsSI as propsi
 from scipy.integrate import solve_ivp
-mech = 'Mevel2017.yaml'
 
 #all outputs in m, m^2 and m^3
 #Functions
@@ -23,35 +22,45 @@ def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numbero
     graincentreradiusupdate = graincentreradius + geometry_scalar
     armwidthupdate = (armwidth + (geometry_scalar*2))
     burn_fillet = geometry_scalar
-    burn_fillet_area = (burn_fillet**2 - (math.pi*burn_fillet**2))*(numberofarms*2) #accounts for the change in geometery area as the sharp corners burn away
+    burn_fillet_area = ((burn_fillet**2) - ((math.pi*burn_fillet**2))/4)*(numberofarms*2) #accounts for the change in geometery area as the sharp corners burn away
     angle = math.asin((armwidthupdate/2)/graincentreradiusupdate) * 2
     arclength = angle*2*graincentreradiusupdate
     arcarea = ((graincentreradiusupdate**2)*angle/2)-((1/2)*(graincentreradiusupdate**2)*math.sin(angle))
     rectanglesubtraction = (grainlength*arclength*numberofarms)
     boresurfacearea = math.pi*2*graincentreradiusupdate*grainlength
-    rectangle_surface_area = (grainlength*(armheight-burn_fillet)*numberofarms*2)+((armwidthupdate-burn_fillet)*grainlength*numberofarms)+(((2 * math.pi* burn_fillet)/4)*grainlength)
+    rectangle_surface_area = (grainlength*(armheight-burn_fillet)*numberofarms*2)+((armwidthupdate-(burn_fillet*2))*grainlength*numberofarms)+((((2 * math.pi* burn_fillet)/4)*grainlength)*numberofarms*2)
+    print (rectangle_surface_area)
     
     if  (boresurfacearea - rectanglesubtraction) <  0 and (armheight+graincentreradiusupdate) < chamber_outer_radius :
         print ('error')
-        print (rectanglesubtraction,boresurfacearea)
+        print (boresurfacearea-rectanglesubtraction)
         print (armheight+graincentreradiusupdate)
         grainsurfacearea = rectangle_surface_area
         graincrosssection = ((3*((3)**(1/2)))/2)*(armwidthupdate**2)+(armheight*armwidthupdate*numberofarms)-burn_fillet_area
-        Volumeofgrain = graincrosssection*grainlength
+        volumeofgrain = graincrosssection*grainlength
         
     else:
         grainsurfacearea = (boresurfacearea+rectangle_surface_area-rectanglesubtraction)
-        graincrosssection = math.pi*graincentreradiusupdate**2+(armheight*armwidthupdate*numberofarms)- arcarea*numberofarms - burn_fillet_area
-        Volumeofgrain = graincrosssection*grainlength
+        graincrosssection = math.pi*graincentreradiusupdate**2+(armheight*armwidthupdate*numberofarms) - (arcarea*numberofarms + burn_fillet_area)
+        volumeofgrain = graincrosssection*grainlength
         print ('pain')
+        print (volumeofgrain)
+        print (graincrosssection)
         
-    return(grainsurfacearea,graincrosssection,Volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction)    
+    return(grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction)    
 
         
     """ #dead code may be needed if calculating area after failure point.
     elif(armheight+graincentreradius) > chamber_outer_radius: #grain failure
         armheight = armheight+(chamber_outer_radius-(armheight+graincentreradius))
-    """    
+    """
+    
+#plotter for grain to see geometry change.
+
+def graingeometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius):
+    graincentreradiusupdate = graincentreradius + geometry_scalar
+    armwidthupdate = (armwidth + (geometry_scalar*2))
+      
 
 #input parameters ignore parameters not used in type of grain
 chamber_outer_radius = 51.52/2000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
@@ -72,8 +81,10 @@ if typeofgrain == 'Addapted Finocyl':
     boresurfacearea = math.pi*2*graincentreradius*grainlength
     rectangle_surface_area = (grainlength*armheight*numberofarms*2)+(armwidth*grainlength*numberofarms)
     grainsurfacearea = (boresurfacearea-rectanglesubtraction)+rectangle_surface_area
-    graincrosssection = math.pi*graincentreradius**2+(armheight*armwidth*numberofarms)- arcarea*6
+    graincrosssection = math.pi*graincentreradius**2+(armheight*armwidth*numberofarms)- arcarea*numberofarms
     volumeofgrain = graincrosssection*grainlength
+    print (volumeofgrain)
+    print (graincrosssection)
     
     #grain calculation
     final_offset = chamber_outer_radius-(graincentreradius+armheight)
@@ -86,40 +97,18 @@ if typeofgrain == 'Addapted Finocyl':
     
     for geometry_scalar in geometry_scalars:
         
-        rectanglesubtraction,grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate = graingeometry_finocyl(geometry_scalar, grainlength, armheight, armwidth, numberofarms, graincentreradius)
+        grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction = graingeometry_finocyl(geometry_scalar, grainlength, armheight, armwidth, numberofarms, graincentreradius)
         surface_area_finocyl.append(grainsurfacearea)
         grain_cross_section_finocyl.append(graincrosssection)
         grain_volume_finocyl.append(volumeofgrain)
         tracker.append(rectanglesubtraction)# for troublshooting
-    ''' 
-    #could not get to work
-    y0 = numpy.zeros(5) # = [0,0]
-    y0[0] = numberofarms
-    y0[1] = grainlength
-    y0[2] = graincentreradius
-    y0[3] = armheight
-    y0[4] = armwidth
-    
-    final_offset = chamber_outer_radius-graincentreradius
-    geometry_scalar = numpy.linspace(0,final_offset,1000)
-    sol = solve_ivp(graingeometry,[0,final_offset],y0,
-                    method='RK45',geometry_scalar=geometry_scalar,
-                    args=(
-                          armheight,
-                          armwidth,
-                          numberofarms,
-                          graincentreradius),
-                    max_step=0.001)
-        
-    print ('grain failure expected at:', final_offset)
-    '''
     
     regression_vs_Surface_area_curve = Chebyshev.fit(geometry_scalars ,surface_area_finocyl , deg=6)
 
     graph.plot(geometry_scalars ,surface_area_finocyl)
     graph.xlabel("regression (m)")
     graph.ylabel("surface area finocyl(m^2)")
-    graph.title('regression vs Surface area')
+    graph.title('regression vs surface area')
     graph.grid()
     graph.show()
     
@@ -153,4 +142,25 @@ elif typeofgrain == 'straight bore':
 else:
     print ("grain type not implemented yet")
 
+''' 
+#could not get to work
+y0 = numpy.zeros(5) # = [0,0]
+y0[0] = numberofarms
+y0[1] = grainlength
+y0[2] = graincentreradius
+y0[3] = armheight
+y0[4] = armwidth
 
+final_offset = chamber_outer_radius-graincentreradius
+geometry_scalar = numpy.linspace(0,final_offset,1000)
+sol = solve_ivp(graingeometry,[0,final_offset],y0,
+                method='RK45',geometry_scalar=geometry_scalar,
+                args=(
+                      armheight,
+                      armwidth,
+                      numberofarms,
+                      graincentreradius),
+                max_step=0.001)
+    
+print ('grain failure expected at:', final_offset)
+'''
