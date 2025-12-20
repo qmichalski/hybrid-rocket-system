@@ -26,27 +26,28 @@ def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numbero
     armheightupdate = (armheight+geometry_scalar)- c
     armwidthupdate = (armwidth + (geometry_scalar*2))
     burn_fillet = geometry_scalar
-    burn_fillet_area = ((burn_fillet**2) - ((math.pi*burn_fillet**2))/4)*(numberofarms*2) #accounts for the change in geometery area as the sharp corners burn away
+    burn_fillet_area = ((((burn_fillet*2)**2) - (math.pi*burn_fillet**2))/4)*(numberofarms*2) #accounts for the change in geometery area as the sharp corners burn away
     angle = math.asin((armwidthupdate/2)/graincentreradiusupdate) * 2
     arclength = angle*graincentreradiusupdate
     arcarea = ((graincentreradiusupdate**2)*angle/2)-((1/2)*(graincentreradiusupdate**2)*math.sin(angle))
     rectanglesubtraction = (grainlength*arclength*numberofarms)
     boresurfacearea = math.pi*2*graincentreradiusupdate*grainlength
     rectangle_surface_area = (grainlength*(armheightupdate-burn_fillet)*numberofarms*2)+((armwidthupdate-(burn_fillet*2))*grainlength*numberofarms)+((((2 * math.pi* burn_fillet)/4)*grainlength)*numberofarms*2)
-    print (rectanglesubtraction)
-    
-    if  (boresurfacearea - rectanglesubtraction) <  0 and (armheightupdate+graincentreradiusupdate) < chamber_outer_radius :
-        print ('error')
+
+    if  (boresurfacearea - rectanglesubtraction) <  0 and (armheight+graincentreradiusupdate) < chamber_outer_radius :
+        print ('type 2 regression')
+        offset = (((graincentreradius)**2)-(armwidth/2)**2)**(1/2)
+        armheightupdate = armheight-((armwidthupdate/2)/(math.tan(0.5235987756))-offset)+geometry_scalar
+        rectangle_surface_area = (grainlength*(armheightupdate-burn_fillet)*numberofarms*2)+((armwidthupdate-(burn_fillet*2))*grainlength*numberofarms)+((((2 * math.pi* burn_fillet)/4)*grainlength)*numberofarms*2)
         grainsurfacearea = rectangle_surface_area
-        graincrosssection = ((3*((3)**(1/2)))/2)*(armwidthupdate**2)+(armheight*armwidthupdate*numberofarms)-burn_fillet_area
+        graincrosssection = ((3*((3)**(1/2)))/2)*(armwidthupdate**2)+(armheightupdate*armwidthupdate*numberofarms)-(burn_fillet_area)
         volumeofgrain = graincrosssection*grainlength
         
     else:
         grainsurfacearea = (boresurfacearea-rectanglesubtraction)+rectangle_surface_area
-        graincrosssection = math.pi*graincentreradiusupdate**2+(armheight*armwidthupdate*numberofarms) - (arcarea*numberofarms + burn_fillet_area)
+        graincrosssection = math.pi*graincentreradiusupdate**2+(armheightupdate*armwidthupdate*numberofarms) - (arcarea*numberofarms + burn_fillet_area)
         volumeofgrain = graincrosssection*grainlength
-        print ('pain')
-        print (grainsurfacearea)
+        print ('type 1 regression')
     return(grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction,)    
 
         
@@ -131,7 +132,7 @@ if typeofgrain == 'Addapted Finocyl':
     graph.grid()
     graph.show()
     
-    print ('grain failure expected at:', final_offset*1000,'mm')
+    print ('grain failure expected at:', final_offset*1000,'mm of regressed material')
     
                
 elif typeofgrain == 'straight bore':
