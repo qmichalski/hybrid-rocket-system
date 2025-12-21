@@ -58,11 +58,72 @@ def graingeometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,numbero
     
 #plotter for grain to see geometry change.
 
-def graingeometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius):
-    graincentreradiusupdate = graincentreradius + geometry_scalar
-    armwidthupdate = (armwidth + (geometry_scalar*2))
-      
+def graingeometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
+   #plot start
+   chamber_outer_radius = chamber_outer_radius*1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+   graincentreradius = graincentreradius*1000
+   armheight = armheight*1000 #only used for grains with radial features
+   armwidth = armwidth*1000 #only used for grains with radial features
+   geometry_scalar = 1
 
+   graincentreradiusupdate = graincentreradius + geometry_scalar
+   a=(((graincentreradius+geometry_scalar)**2)-(armwidth/2)**2)**(1/2)-((graincentreradius**2-(armwidth/2)**2))**(1/2)
+   b=(((graincentreradius+geometry_scalar)**2)-((armwidth/2)**2))**(1/2)-(((graincentreradius+geometry_scalar)**2) - ((armwidth+(geometry_scalar*2))/2)**2)**(1/2)
+   c = a-b
+   armheightupdate = (armheight+geometry_scalar)- c
+   armwidthupdate = (armwidth + (geometry_scalar*2))
+   burn_fillet = geometry_scalar
+   angle = math.asin((armwidthupdate/2)/graincentreradiusupdate) * 2
+   anglebore = ((2*math.pi)-(angle*numberofarms))/numberofarms
+   arclength = angle*graincentreradiusupdate
+   circumference_bore = graincentreradiusupdate*2*math.pi
+   circumference_arc = arclength*numberofarms
+   archbore =(circumference_bore-circumference_arc)/numberofarms
+   cordbore = 2 * graincentreradiusupdate * math.sin(anglebore/2)
+
+   if  circumference_bore - circumference_arc <  0 and (armheight+graincentreradiusupdate) < chamber_outer_radius:
+       print("crap")
+       print('crap')
+   else:
+       x = []
+       y = []
+       startheight = armheightupdate+graincentreradiusupdate
+       x.append(0), y.append(startheight)
+       startlength  = (armwidthupdate - burn_fillet)/2
+       startarm = numpy.linspace(0,startlength,10) #breaks the arm into 10 points
+       for xpoint in startarm:
+           x.append(xpoint), y.append(startheight)
+       curvey = 0
+       xcurrent = xpoint
+       #burn fillet when needed
+       if burn_fillet > 0:
+           curve = numpy.linspace(0, burn_fillet ,500)
+           for curvex in curve:
+               curvey = ((burn_fillet**2)-(curvex**2))**(1/2)
+               xcurrent = xpoint+curvex
+               ycurrent = startheight-(burn_fillet-curvey)
+               x.append(xcurrent), y.append(ycurrent)
+               print(curvey)
+       startdrop = startheight-burn_fillet
+       drop = (graincentreradiusupdate)
+       startarmdrop = numpy.linspace(startdrop,drop,10) #breaks the arm drop into 10 points
+       for ypoint in startarmdrop:
+           x.append(xcurrent), y.append(ypoint)
+       xpoint = xcurrent
+       curve = numpy.linspace(0,cordbore,500)
+       for curvex in curve:
+           curvey = ((graincentreradiusupdate**2)-(curvex**2))**(1/2)
+           xcurrent = xpoint+curvex
+           ycurrent = ypoint-(graincentreradiusupdate-curvey)
+           x.append(xcurrent), y.append(ycurrent)
+           print(curvey)
+
+       graph.plot((x) ,(y))
+       graph.xlabel("x (mm)")
+       graph.ylabel("y (mm)")
+       graph.title('regression profile')
+       graph.grid()
+       graph.show()
 #input parameters ignore parameters not used in type of grain
 chamber_outer_radius = 51.52/2000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
