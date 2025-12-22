@@ -7,10 +7,11 @@ Created on Mon Dec 22 22:05:34 2025
 import math
 import numpy
 import matplotlib.pyplot as graph
-import  sys
+import sys
 
 def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
    #plot start
+   geometry_scalar = geometry_scalar*1000
    chamber_outer_radius = chamber_outer_radius*1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
    graincentreradius = graincentreradius*1000
    armheight = armheight*1000 #only used for grains with radial features
@@ -63,8 +64,9 @@ def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwid
            armtrack = armtrack + 1
            
            thea = (armtrack - 1) * angle_between_arms
-           offsetstart = graincentreradiusupdate-((graincentreradiusupdate**2)-((armwidthupdate/2)**2))**(1/2)
-           startheight = armheightupdate+graincentreradiusupdate-offsetstart
+           offsetstart = graincentreradius -((graincentreradius**2)-((armwidth/2)**2))**(1/2)
+           startheight = armheight+graincentreradius-offsetstart
+           startheight = startheight + geometry_scalar
            xstart = math.cos(thea)*(startheight)
            ystart = math.sin(thea)*(startheight)
            x.append(xstart), y.append(ystart)
@@ -150,7 +152,7 @@ def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwid
            ycurrent = ypoint  
            
            for i in range (0, 500):
-                   angle_update = (armtrack) * angle_between_arms-anglebore
+                   angle_update = (armtrack) * angle_between_arms
                    thea2 = theacurve2[i] + angle_update
                    xcurrent = math.cos(thea2)*radiuscurve2[i]
                    ycurrent = math.sin(thea2)*radiuscurve2[i]
@@ -170,7 +172,7 @@ def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwid
                x.append(xpoint) 
            for ypoint in startarmy:
                y.append(ypoint)
-       
+       return x,y
    else:
        armtrack = 0
        run = 0
@@ -297,4 +299,4 @@ def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwid
                x.append(xpoint) 
            for ypoint in startarmy:
                y.append(ypoint)
-   return x1,y1,x,y
+       return x,y     

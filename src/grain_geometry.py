@@ -91,10 +91,9 @@ if typeofgrain == 'Addapted Finocyl':
         y = []
         x1 = []
         y1 = []
-        """
+        
         x,y,x1,y1 = graingeometry_finocyl_plotter_inital_shape(grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
         graph.plot(x,y)
-        graph.show
         graph.plot((x),(y))
         ax = graph.gca()
         graph.xlabel("x (mm)")
@@ -104,16 +103,30 @@ if typeofgrain == 'Addapted Finocyl':
         graph.show()
         x.clear()
         y.clear()
-        """
-        
         #grain calculation
         final_offset = chamber_outer_radius-(graincentreradius+armheight)
-        geometry_scalars = numpy.linspace(0,final_offset,1000)
+        geometry_scalars = numpy.linspace(0,final_offset,10)
         
         surface_area_finocyl = []
         grain_cross_section_finocyl = []
         grain_volume_finocyl = []
         tracker = []
+        
+
+        for geometry_scalar in geometry_scalars:
+
+            x,y = grain_geometry_finocyl_plotter(geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+                
+            graph.plot(x,y)
+            
+            geometry_scalar = geometry_scalar +  1
+        
+        ax = graph.gca()
+        graph.xlabel("x (mm)")
+        graph.ylabel("y (mm)")
+        graph.title('regression profile')
+        graph.grid()
+        graph.show()
     
         for geometry_scalar in geometry_scalars:
             
@@ -122,10 +135,8 @@ if typeofgrain == 'Addapted Finocyl':
             grain_cross_section_finocyl.append(graincrosssection)
             grain_volume_finocyl.append(volumeofgrain)
             tracker.append(rectanglesubtraction)# for troublshooting
-            
-           # x,y,x1,y1 = grain_geometry_finocyl_plotter(geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
-    
-            regression_vs_Surface_area_curve = Chebyshev.fit(geometry_scalars ,surface_area_finocyl , deg=6)
+        
+        regression_vs_Surface_area_curve = Chebyshev.fit(geometry_scalars ,surface_area_finocyl , deg=6)
 
         graph.plot(geometry_scalars ,surface_area_finocyl)
         graph.xlabel("regression (m)")
