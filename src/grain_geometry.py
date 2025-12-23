@@ -45,7 +45,6 @@ def grain_geometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,number
     rectangle_surface_area = (grainlength*(armheightupdate-burn_fillet)*numberofarms*2)+((armwidthupdate-(burn_fillet*2))*grainlength*numberofarms)+((((2 * math.pi* burn_fillet)/4)*grainlength)*numberofarms*2)
 
     if  (boresurfacearea - rectanglesubtraction) <  0 and (armheight+graincentreradiusupdate) < chamber_outer_radius :
-        print ('type 2 regression')
         offset = (((graincentreradius)**2)-(armwidth/2)**2)**(1/2)
         armheightupdate = armheight-((armwidthupdate/2)/(math.tan(0.5235987756))-offset)+geometry_scalar
         rectangle_surface_area = (grainlength*(armheightupdate-burn_fillet)*numberofarms*2)+((armwidthupdate-(burn_fillet*2))*grainlength*numberofarms)+((((2 * math.pi* burn_fillet)/4)*grainlength)*numberofarms*2)
@@ -57,7 +56,6 @@ def grain_geometry_finocyl(geometry_scalar,grainlength,armheight,armwidth,number
         grainsurfacearea = (boresurfacearea-rectanglesubtraction)+rectangle_surface_area
         graincrosssection = math.pi*graincentreradiusupdate**2+(armheightupdate*armwidthupdate*numberofarms) - (arcarea*numberofarms + burn_fillet_area)
         volumeofgrain = graincrosssection*grainlength
-        print ('type 1 regression')
         
     return(grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction,)    
 
