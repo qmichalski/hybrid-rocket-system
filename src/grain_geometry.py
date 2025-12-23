@@ -19,7 +19,7 @@ from graingeometry_finocyl_plotter_inital_shape import graingeometry_finocyl_plo
 
 chamber_outer_radius = 51.52/2000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
-numberofarms = 6 #only used for grains with radial features
+numberofarms = 6#only used for grains with radial features
 grainlength = 358/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
@@ -105,7 +105,7 @@ if typeofgrain == 'Addapted Finocyl':
         y.clear()
         #grain calculation
         final_offset = chamber_outer_radius-(graincentreradius+armheight)
-        geometry_scalars = numpy.linspace(0,final_offset,10)
+        geometry_scalars = numpy.linspace(0,final_offset,50) #adjusts resolution of plot
         
         surface_area_finocyl = []
         grain_cross_section_finocyl = []
@@ -118,8 +118,6 @@ if typeofgrain == 'Addapted Finocyl':
             x,y = grain_geometry_finocyl_plotter(geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
                 
             graph.plot(x,y)
-            
-            geometry_scalar = geometry_scalar +  1
         
         ax = graph.gca()
         graph.xlabel("x (mm)")
@@ -127,7 +125,8 @@ if typeofgrain == 'Addapted Finocyl':
         graph.title('regression profile')
         graph.grid()
         graph.show()
-    
+        
+        geometry_scalars = numpy.linspace(0,final_offset,1000)
         for geometry_scalar in geometry_scalars:
             
             grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction = grain_geometry_finocyl (geometry_scalar, grainlength, armheight, armwidth, numberofarms, graincentreradius)
