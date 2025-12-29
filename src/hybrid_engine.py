@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Dec 10 18:05:38 2025
 
@@ -12,6 +11,19 @@ from scipy.integrate import solve_ivp
 import CoolProp.CoolProp as CP
 import libCombRegRate
 import libMassFlux
+import grain_geometry_lib
+
+#input parameters for grain ignore parameters not used in type of grain in m
+
+chamber_outer_radius = 51.52/2000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+typeofgrain = 'Addapted Finocyl'
+numberofarms = 6 #only used for grains with radial features
+grainlength = 358/1000
+graincentreradius = 10/1000
+armheight = 8/1000 #only used for grains with radial features
+armwidth = 4.229/1000 #only used for grains with radial features
+
+run:grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grainlength,graincentreradius,armheight,armwidth)
 
 def combustionDifferentialSystemWithOxidizerTank(t,z,
                                                  section_nozzle,
