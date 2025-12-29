@@ -4,11 +4,11 @@ Created on Mon Dec 22 22:11:32 2025
 
 @author: Guillaume
 """
-import math
-import numpy
-import matplotlib.pyplot as graph
 
 def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius,):
+   import math
+   import numpy
+   import matplotlib.pyplot as graph
    #plot start
    chamber_outer_radius = chamber_outer_radius*1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
    graincentreradius = graincentreradius*1000
