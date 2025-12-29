@@ -59,7 +59,7 @@ def grain_geometry_finocyl(geometry_scalar,grain_length,armheight,armwidth,numbe
 def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth):
     if numberofarms == 0:
         
-        typeofgrain = 'straight bore'
+        typeofgrain = 'Straight Bore'
         
     if typeofgrain == 'Addapted Finocyl':
         
@@ -131,7 +131,6 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
             graph.xlabel("regression (m)")
             graph.ylabel("surface area finocyl(m^2)")
             graph.title('regression vs surface area')
-            graph.grid()
             graph.show()
             
             regression_vs_grain_cross_section_curve = Chebyshev.fit(geometry_scalars ,grain_cross_section_finocyl , deg=6)
@@ -141,7 +140,6 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
             graph.xlabel("regression (m)")
             graph.ylabel("grain cross section finocyl(m^2)")
             graph.title('regression vs cross section')
-            graph.grid()
             graph.show()
             
             regression_vs_volume_curve = Chebyshev.fit(geometry_scalars ,grain_volume_finocyl , deg=6)
@@ -151,12 +149,11 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
             graph.xlabel("regression (m)")
             graph.ylabel("grain volume finocyl(m^3)")
             graph.title('regression vs volume') 
-            graph.grid()
             graph.show()
             
             print ('grain failure expected at:', final_offset*1000,'mm of regressed material')
                 
-    elif typeofgrain == 'straight bore':
+    elif typeofgrain == 'Straight Bore':
         N = 1000
         Swr_discretes = numpy.linspace(2*math.pi*graincentreradius,2*math.pi*chamber_outer_radius,N)*grain_length
         Swr_discretes = numpy.concatenate([Swr_discretes,[0]])
@@ -173,23 +170,20 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
         
         graph.plot(radii_discretes ,Swr_discretes)
         graph.xlabel("regression (m)")
-        graph.ylabel("surface area circle bore (m^2)")
-        graph.title('regression vs surface area')
-        graph.grid()
+        graph.ylabel("surface area")
+        graph.title('regression vs surface area circle bore (m^2)')
         graph.show()
     
         graph.plot(radii_discretes ,Pr_discretes)
         graph.xlabel("regression (m)")
-        graph.ylabel("grain cross section circle bore (m^2)")
-        graph.title('regression vs cross section')
-        graph.grid()
+        graph.ylabel("grain cross section")
+        graph.title('regression vs cross section circle bore (m^2)')
         graph.show()
     
         graph.plot(radii_discretes ,v_discretes)
         graph.xlabel("regression (m)")
-        graph.ylabel("grain volume circle bore(m^3)")
-        graph.title('regression vs volume') 
-        graph.grid()
+        graph.ylabel("grain volume")
+        graph.title('regression vs volume circle bore(m^3)')
         graph.show()
         
     

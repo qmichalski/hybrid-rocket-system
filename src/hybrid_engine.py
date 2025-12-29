@@ -13,6 +13,7 @@ import libCombRegRate
 import libMassFlux
 import grain_geometry_lib
 
+plt.rcParams['axes.grid'] = True
 #fluid libraries
 HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
 gas = ct.Solution('gri30_highT.yaml')
@@ -20,7 +21,7 @@ gas = ct.Solution('gri30_highT.yaml')
 #input parameters for grain ignore parameters not used in type of grain in m
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
-typeofgrain = 'Addapted Finocyl'
+typeofgrain = 'Straight Bore'
 numberofarms = 6 #only used for grains with radial features
 grain_length = 358/1000
 graincentreradius = 10/1000
@@ -231,6 +232,7 @@ plt.rcParams['mathtext.bf'] = "cm"
 fig1 = plt.figure(figsize=(combustionAndFlameMax/inchToMM*2, combustionAndFlameMax/inchToMM*2),dpi=400)
 gs1 = fig1.add_gridspec(4, 1, hspace=0.1,height_ratios=[3,1,1,1])
 ax = gs1.subplots(sharex=True)
+
 ax[0].plot(sol['t'],Tcs,label='T combustion chamber',color='red')
 ax[0].plot(sol['t'],pcs/1e3,label='P combustion chamber',color='black')
 ax[0].plot(sol['t'],pos/1e3,label='P N2O tank',color='blue')
@@ -245,5 +247,7 @@ ax[0].set_ylabel('T, K | P, kPa')
 ax[1].set_ylabel('$\dot{m}, g/s$')
 ax[2].set_ylabel('Mixture Ratio')
 ax[3].set_ylabel('Grain mass, g')
+
+
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
