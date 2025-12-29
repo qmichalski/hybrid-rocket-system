@@ -21,7 +21,7 @@ gas = ct.Solution('gri30_highT.yaml')
 #input parameters for grain ignore parameters not used in type of grain in m
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
-typeofgrain = 'Straight Bore'
+typeofgrain = 'Addapted Finocyl'
 numberofarms = 6 #only used for grains with radial features
 grain_length = 358/1000
 graincentreradius = 10/1000

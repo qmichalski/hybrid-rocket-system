@@ -97,25 +97,7 @@ def combustionDifferentialSystem(t,z,Swr_fun,Pr_fun,combustion_final_radius,grai
         return(mdot_fuel,regression_rate)
     else:
         return(dzdt)
-
-def combustionBurningGrainGeometry(grainType='Circular_1'):
-    if grainType == 'Circular_1':
-        grain_length = 358/1000 # m
-        initial_radius = 15/1000 # m 
-        final_radius = 25.8/1000 # m
-        # chamber_length = grain_length
-        N = 1000
-        Swr_discretes = np.linspace(2*np.pi*initial_radius,2*np.pi*final_radius,N)*grain_length
-        Swr_discretes = np.concatenate([Swr_discretes,[0]])
-        Pr_discretes = np.linspace(np.pi*initial_radius**2,np.pi*final_radius**2,N)
-        Pr_discretes = np.concatenate([Pr_discretes,[Pr_discretes[-1]]])
-        radii_discretes = np.linspace(0,final_radius-initial_radius,N)
-        radii_discretes = np.concatenate([radii_discretes,[radii_discretes[-1]*2]])
-        Swr_fun = interp1d(radii_discretes,Swr_discretes) # wet surface function
-        Pr_fun = interp1d(radii_discretes,Pr_discretes) # port section
-        combustion_final_radius = final_radius-initial_radius
-    return(Swr_fun,Pr_fun,combustion_final_radius,grain_length)
-
+    
 if __name__ == "__main__":
 
     def combustion_quenching(t,z,Swr_fun,Pr_fun,combustion_final_radius,grain_length,
