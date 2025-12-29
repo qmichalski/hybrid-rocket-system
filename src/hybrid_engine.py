@@ -1,7 +1,7 @@
 """
 Created on Wed Dec 10 18:05:38 2025
 
-@author: quent
+@author: quent,guillaume
 """
 
 import cantera as ct
@@ -13,17 +13,61 @@ import libCombRegRate
 import libMassFlux
 import grain_geometry_lib
 
+#fluid libraries
+HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
+gas = ct.Solution('gri30_highT.yaml')
+
 #input parameters for grain ignore parameters not used in type of grain in m
 
-chamber_outer_radius = 51.52/2000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
 numberofarms = 6 #only used for grains with radial features
-grainlength = 358/1000
+grain_length = 358/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
 
-run:grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grainlength,graincentreradius,armheight,armwidth)
+#inital fluid conditions
+
+fuel_name = 'ABS'
+fuel_composition = 'C:17.03, H:18.9, N:1'
+fuel_eof = 90.312*1e6# J/mol
+fuel = ct.Species(fuel_name,fuel_composition)
+fuel.thermo = ct.ConstantCp(200,5000,101325,
+                              (298.15,
+                              fuel_eof,# J/kmol
+                              0,
+                              0))
+tran = ct.GasTransportData()
+tran.set_customary_units('nonlinear', 3.75, 141.40, 0.0, 2.60, 13.00)
+fuel.transport = tran
+gas.add_species(fuel)
+
+ambiant_pressure = 1e5
+T0 = 300
+oxidizer = 'N2O:1'
+gas.TPX = T0,ambiant_pressure,oxidizer
+Y_oxidizer = gas.Y
+fuel = 'ABS:1'
+gas.TPX = T0,ambiant_pressure,fuel
+Y_fuel = gas.Y
+gas.TPX = T0,ambiant_pressure,'O2:0.21,N2:0.79'
+# gas.TPY = T0,1e5,'N2O:3,C3H8:1'
+HEOS.update(CP.QT_INPUTS, 0, T0)
+# combustor_length = 150e-3 
+T_abs = T0
+diameter_nozzle = 2*9.43e-3 # m
+section_nozzle = np.pi*(diameter_nozzle/2)**2
+volume_oxidizer = 4.63e-3
+section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
+rho_abs = 1080 # kg/m3
+cp_abs = 1500 # J/kg/K
+hv = 1.8e6 # J/kg
+combustion_eff = 0.8
+
+#program start
+
+Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
 def combustionDifferentialSystemWithOxidizerTank(t,z,
                                                  section_nozzle,
@@ -108,49 +152,13 @@ def combustion_quenching(t,z,section_nozzle,
 combustion_quenching.terminal = True
 combustion_quenching.direction = -1
 
-HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
-gas = ct.Solution('gri30_highT.yaml')
 # speciesToKeep = ['H2', 'H', 'O', 'O2', 'OH', 'H2O', 'CO', 'CO2', 'NO', 'N2', 'N2O', 'C3H8']
 # speciesToKeep = ['O2', 'N2', 'N2O', 'C3H8']
 # species = [gas.species(name) for name in speciesToKeep]
 # create the new reduced mechanism
 # gas = ct.Solution(thermo='ideal-gas',species=species)
-fuel_name = 'ABS'
-fuel_composition = 'C:17.03, H:18.9, N:1'
-fuel_eof = 90.312*1e6# J/mol
-fuel = ct.Species(fuel_name,fuel_composition)
-fuel.thermo = ct.ConstantCp(200,5000,101325,
-                              (298.15,
-                              fuel_eof,# J/kmol
-                              0,
-                              0))
-tran = ct.GasTransportData()
-tran.set_customary_units('nonlinear', 3.75, 141.40, 0.0, 2.60, 13.00)
-fuel.transport = tran
-gas.add_species(fuel)
 
-ambiant_pressure = 1e5
-T0 = 300
-oxidizer = 'N2O:1'
-gas.TPX = T0,ambiant_pressure,oxidizer
-Y_oxidizer = gas.Y
-fuel = 'ABS:1'
-gas.TPX = T0,ambiant_pressure,fuel
-Y_fuel = gas.Y
-gas.TPX = T0,ambiant_pressure,'O2:0.21,N2:0.79'
-# gas.TPY = T0,1e5,'N2O:3,C3H8:1'
-HEOS.update(CP.QT_INPUTS, 0, T0)
-# combustor_length = 150e-3 
-T_abs = T0
-diameter_nozzle = 2*9.43e-3 # m
-section_nozzle = np.pi*(diameter_nozzle/2)**2
-volume_oxidizer = 4.63e-3
-section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
-rho_abs = 1080 # kg/m3
-cp_abs = 1500 # J/kg/K
-hv = 1.8e6 # J/kg
-combustion_eff = 0.8
-Swr_fun,Pr_fun,combustion_final_radius,grain_length = libCombRegRate.combustionBurningGrainGeometry(grainType='Circular_1')
+
 mo0 = HEOS.rhomass()*volume_oxidizer
 Uo0 = mo0*HEOS.umass()
 volume_combustor = Pr_fun(0)*grain_length

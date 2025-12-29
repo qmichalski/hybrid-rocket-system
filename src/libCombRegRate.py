@@ -99,12 +99,6 @@ def combustionDifferentialSystem(t,z,Swr_fun,Pr_fun,combustion_final_radius,grai
         return(dzdt)
 
 def combustionBurningGrainGeometry(grainType='Circular_1'):
-    # if grainType == 'Adapted_Finocyl_1':
-    #     numberofarms = 6
-    #     grainlength = 358/1000000
-    #     graincentreradius = 10/1000000
-    #     armheight = 8/1000000
-    #     armwidth = 4.2/1000000
     if grainType == 'Circular_1':
         grain_length = 358/1000 # m
         initial_radius = 15/1000 # m 
