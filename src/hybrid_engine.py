@@ -24,7 +24,7 @@ chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making
 typeofgrain = 'Addapted Finocyl'
 numberofarms = 6 #only used for grains with radial features
 grain_length = 358/1000
-graincentreradius = 10/1000
+graincentreradius = 5/1000
 armheight = 8/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
 
