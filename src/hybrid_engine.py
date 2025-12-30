@@ -92,7 +92,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     ho = HEOS.hmass()
     uc = Uc/mc # chamber averaged specific internal energy
     combustor_length = grain_length
-    if combustion_radius < combustion_final_radius:
+    if combustion_radius > combustion_final_radius:
         volume_combustor = Pr_fun(combustion_final_radius)*combustor_length
     else:
         volume_combustor =  Pr_fun(combustion_radius)*combustor_length
@@ -112,8 +112,8 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     h_oxidizer = gas.enthalpy_mass
     gas.TPY = 300,1e5,Y_fuel
     h_fuel = gas.enthalpy_mass
-    if combustion_radius < combustion_final_radius: # grain run out controller
-        area_combustion = Swr_fun(combustion_final_radius)
+    if combustion_radius > combustion_final_radius: # grain run out controller
+        area_combustion = 0
         section_combustor = Pr_fun(combustion_final_radius)
     else:
         area_combustion = Swr_fun(combustion_radius)
