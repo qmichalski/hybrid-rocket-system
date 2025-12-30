@@ -1,7 +1,7 @@
 """
 Created on Wed Dec 10 18:05:38 2025
 
-@author: quent,guillaume
+@author: quent,guillaume,arun
 """
 
 import cantera as ct
