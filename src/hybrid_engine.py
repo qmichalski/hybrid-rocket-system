@@ -92,7 +92,10 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     ho = HEOS.hmass()
     uc = Uc/mc # chamber averaged specific internal energy
     combustor_length = grain_length
-    volume_combustor =  Pr_fun(combustion_radius)*combustor_length
+    if combustion_radius < combustion_final_radius:
+        volume_combustor = Pr_fun(combustion_final_radius)*combustor_length
+    else:
+        volume_combustor =  Pr_fun(combustion_radius)*combustor_length
     rhoc = mc/volume_combustor # chamber averaged density
     Yc = mYc/mc
     gas.UVY = uc, 1/rhoc, Yc
@@ -109,8 +112,13 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     h_oxidizer = gas.enthalpy_mass
     gas.TPY = 300,1e5,Y_fuel
     h_fuel = gas.enthalpy_mass
-    area_combustion = Swr_fun(combustion_radius)
-    section_combustor = Pr_fun(combustion_radius)
+    if combustion_radius < combustion_final_radius: # grain run out controller
+        area_combustion = Swr_fun(combustion_final_radius)
+        section_combustor = Pr_fun(combustion_final_radius)
+    else:
+        area_combustion = Swr_fun(combustion_radius)
+        section_combustor = Pr_fun(combustion_radius)
+        
     mdot_fuel,T_burnt_products,Y_burnt_products,h_reactants_mix,regression_rate = libCombRegRate.solveCombustion(
                       h_fuel,Y_fuel,pc,h_oxidizer,Y_oxidizer,
                       T_abs,cp_abs,rho_abs,hv,area_combustion,
