@@ -62,7 +62,7 @@ def solveCombustion(h_fuel,Y_fuel,Pc,h_oxidizer,Y_oxidizer,
                      T_abs,cp_abs,rho_abs,hv,area_combustion,
                      mdot_oxidizer,section_combustor,combustor_length,combustion_eff,gas,fulloutput=True)
     return(mdot_fuel,T_burnt_products,Y_burnt_products,h_reactants_mix,r)
-
+"""
 def combustionDifferentialSystem(t,z,Swr_fun,Pr_fun,combustion_final_radius,grain_length,
                                  T_abs,cp_abs,rho_abs,hv,
                                  section_nozzle,
@@ -191,3 +191,4 @@ if __name__ == "__main__":
     #                       mdot_oxidizer,section_combustor,combustor_length,gas,fulloutput=False)
     #     diffs[i] = diff
     # plt.plot(mdot_oxidizer/mdot_fuels,diffs)
+    """

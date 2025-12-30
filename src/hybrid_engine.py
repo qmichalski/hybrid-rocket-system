@@ -23,7 +23,7 @@ gas = ct.Solution('gri30_highT.yaml')
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
-numberofarms = 6 #only used for grains with radial features
+numberofarms = 0 #only used for grains with radial features
 grain_length = 358/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
@@ -109,7 +109,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     if combustion_radius > combustion_final_radius:
         volume_combustor = Pr_fun(combustion_final_radius)*combustor_length
     else:
-        volume_combustor =  Pr_fun(combustion_radius)*combustor_length
+        volume_combustor =  Pr_fun (combustion_radius)*combustor_length
     rhoc = mc/volume_combustor # chamber averaged density
     Yc = mYc/mc
     gas.UVY = uc, 1/rhoc, Yc
@@ -134,7 +134,6 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     else:
         area_combustion = Swr_fun(combustion_radius)
         section_combustor = Pr_fun(combustion_radius)
-        
     mdot_fuel,T_burnt_products,Y_burnt_products,h_reactants_mix,regression_rate = libCombRegRate.solveCombustion(
                       h_fuel,Y_fuel,pc,h_oxidizer,Y_oxidizer,
                       T_abs,cp_abs,rho_abs,hv,area_combustion,
@@ -147,7 +146,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     dUdot = -mdot_oxidizer*ho
     
     dzdt = np.zeros(len(z))
-    print('t:{:4.2f}s|pc:{:4.2f} bar|Tc:{:4.0f}K|mdott:{:1.3f}|Tp:{:03.0f}K'.format(t,pc/1e5,Tc,massflow_throat,T_burnt_products))
+    #print('t:{:4.2f}s|pc:{:4.2f} bar|Tc:{:4.0f}K|mdott:{:1.3f}|Tp:{:03.0f}K'.format(t,pc/1e5,Tc,massflow_throat,T_burnt_products))
     # print('O2:{:4.2f}s|pc:{:4.2f} bar|Tc:{:4.0f}K|mdott:{:1.3f}kgs'.format(t,pc/1e5,Tc,massflow_throat))
     dzdt[0] = regression_rate
     dzdt[1] = dmcdt
@@ -199,8 +198,9 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 11
+tf = 15
 t_eval = np.linspace(0,tf,100)
+
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 method='LSODA',t_eval=t_eval,events=combustion_quenching, 
                 args=(
@@ -215,54 +215,49 @@ sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 max_step=0.1)
 
 # EXTRACTING DATA_______________________________________________________________________________________________
-pcs = np.zeros(len(t_eval))
-Tcs = np.zeros(len(t_eval))
-pos = np.zeros(len(t_eval))
-Tos = np.zeros(len(t_eval))
-xos = np.zeros(len(t_eval))
-mdoto = np.zeros(len(t_eval))
-mdotf = np.zeros(len(t_eval))
-thrust = np.zeros(len(t_eval))
-thrust_sum = 0
-mass_flow_rate_sum = 0
+pcs = []
+Tcs = []
+pos = []
+Tos = []
+xos = []
+mdoto = []
+mdotf = []
+thrust = []
+TVA = []
+mdottotf = []
 
 for i,t in enumerate(t_eval):
-    z = np.zeros(len(y0))
-    z[0] = sol['y'][0,i]
-    z[1] = sol['y'][1,i]
-    z[2] = sol['y'][2,i]
-    z[3] = sol['y'][3,i]
-    z[4:] = sol['y'][4:,i] 
-    pc,Tc,uc,rhoc,Yc,rho_throat,v_throat,p_throat,po,To,xo,rhoo,mdot_oxidizer,mdot_fuel, gamma, R = combustionDifferentialSystemWithOxidizerTank(t,z,
-                                                                                                             section_nozzle,
-                                                                                                             ambiant_pressure,
-                                                                                                             volume_oxidizer,
-                                                                                                             section_injector,
-                                                                                                             Y_oxidizer,
-                                                                                                             Swr_fun,Pr_fun,combustion_final_radius,grain_length,
-                                                                                                             Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
-                                                                                                             gas,HEOS,fulloutput=True)
-    pcs[i] = pc
-    Tcs[i] = Tc
-    pos[i] = po
-    Tos[i] = To
-    xos[i] = xo
-    mdoto[i] = mdot_oxidizer
-    mdotf[i] = mdot_fuel
-    
-    T_exit = Tc/ (1 + (gamma-1)*(M_design**2)/2)
-    a_exit = math.sqrt(gamma*R*T_exit)
-    V_exit = M_design*a_exit
-    m_dot_exit = rho_throat*throat_area*v_throat
-    
-    P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
-    thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit
-    thrust_sum = thrust_sum +thrust[i]
-    mass_flow_rate_sum = mass_flow_rate_sum + m_dot_exit
-    
-print (thrust_sum/len(sol['t']))
-print (thrust_sum/(mass_flow_rate_sum*9.81))
-
+    try:
+        z = np.zeros(len(y0))
+        z[0] = sol['y'][0,i]
+        z[1] = sol['y'][1,i]
+        z[2] = sol['y'][2,i]
+        z[3] = sol['y'][3,i]
+        z[4:] = sol['y'][4:,i] 
+        pc,Tc,uc,rhoc,Yc,rho_throat,v_throat,p_throat,po,To,xo,rhoo,mdot_oxidizer,mdot_fuel = combustionDifferentialSystemWithOxidizerTank(t,z,
+                                                                                                                 section_nozzle,
+                                                                                                                 ambiant_pressure,
+                                                                                                                 volume_oxidizer,
+                                                                                                                 section_injector,
+                                                                                                                 Y_oxidizer,
+                                                                                                                 Swr_fun,Pr_fun,combustion_final_radius,grain_length,
+                                                                                                                 Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
+                                                                                                                 gas,HEOS,fulloutput=True)
+        pcs.append(pc/1e3)
+        Tcs.append(Tc)
+        pos.append(po/1e3)
+        Tos.append(To)
+        xos.append(xo)
+        mdoto.append(mdot_oxidizer*1e3)
+        mdotf.append(mdot_fuel*1e3)
+        mdottotf.append(mdot_oxidizer/mdot_fuel)
+        thrust.append(rho_throat*throat_area*v_throat**2)
+        TVA.append(t)
+    except:
+        print("oh no", t)
+        tf = t
+        t_eval = np.linspace(0,tf,100)
+        break
 fuel_mass = rho_abs*(Pr_fun(combustion_final_radius)-Pr_fun(sol['y'][0]))*grain_length
 
 
@@ -278,14 +273,14 @@ plt.rcParams['mathtext.bf'] = "cm"
 fig1 = plt.figure(figsize=(combustionAndFlameMax/inchToMM*2, combustionAndFlameMax/inchToMM*2),dpi=400)
 gs1 = fig1.add_gridspec(4, 1, hspace=0.1,height_ratios=[3,1,1,1])
 ax = gs1.subplots(sharex=True)
-
-ax[0].plot(sol['t'],Tcs,label='T combustion chamber',color='red')
-ax[0].plot(sol['t'],pcs/1e3,label='P combustion chamber',color='black')
-ax[0].plot(sol['t'],pos/1e3,label='P N2O tank',color='blue')
-ax[1].plot(sol['t'],mdoto*1e3,label='$\dot{m}_{N2O}$',color='blue')
-ax[1].plot(sol['t'],mdotf*1e3,label='$\dot{m}_{ABS}$',color='black')
-ax[2].plot(sol['t'],mdoto/mdotf,color='black')
-ax[3].plot(sol['t'],fuel_mass*1e3,color='black')
+sol['t']  = TVA
+ax[0].plot(TVA,Tcs,label='T combustion chamber',color='red')
+ax[0].plot(TVA,pcs,label='P combustion chamber',color='black')
+ax[0].plot(TVA,pos,label='P N2O tank',color='blue')
+ax[1].plot(TVA,mdoto,label='$\dot{m}_{N2O}$',color='blue')
+ax[1].plot(TVA,mdotf,label='$\dot{m}_{ABS}$',color='black')
+ax[2].plot(TVA,mdottotf,color='black')
+ax[3].plot(TVA,fuel_mass*1e3,color='black')
 ax[0].legend()
 ax[1].legend()
 ax[-1].set_xlabel('Time,s')
@@ -295,7 +290,7 @@ ax[2].set_ylabel('Mixture Ratio')
 ax[3].set_ylabel('Grain mass, g')
 plt.show()
 
-plt.plot(sol['t'],thrust,color = 'red')
+plt.plot(TVA,thrust,color = 'red')
 plt.xlabel('Time, s')
 plt.ylabel('Thrust, N')
 plt.ylim([0,1455])
