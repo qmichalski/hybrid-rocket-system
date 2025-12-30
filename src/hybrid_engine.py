@@ -18,7 +18,7 @@ plt.rcParams['axes.grid'] = True
 HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
 gas = ct.Solution('gri30_highT.yaml')
 
-#input parameters for grain ignore parameters not used in type of grain in m
+#input parameters for grain ignore parameters not used in type of grain in m ___________________________________
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
@@ -28,7 +28,7 @@ graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
 
-#inital fluid conditions
+# FUEL DATA_____________________________________________________________________________________________________
 
 fuel_name = 'ABS'
 fuel_composition = 'C:17.03, H:18.9, N:1'
@@ -66,10 +66,10 @@ cp_abs = 1500 # J/kg/K
 hv = 1.8e6 # J/kg
 combustion_eff = 0.8
 
-#program start
 
 Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
+# MAIN CHAMBER FUNCTION_________________________________________________________________________________________
 def combustionDifferentialSystemWithOxidizerTank(t,z,
                                                  section_nozzle,
                                                  ambiant_pressure,
@@ -140,6 +140,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     else:
         return(dzdt)
 
+# COMBUSTION QUENCHING__________________________________________________________________________________________
 def combustion_quenching(t,z,section_nozzle,
                         ambiant_pressure,
                         volume_oxidizer,
@@ -160,6 +161,7 @@ combustion_quenching.direction = -1
 # gas = ct.Solution(thermo='ideal-gas',species=species)
 
 
+# SOLUTION______________________________________________________________________________________________________
 mo0 = HEOS.rhomass()*volume_oxidizer
 Uo0 = mo0*HEOS.umass()
 volume_combustor = Pr_fun(0)*grain_length
@@ -188,6 +190,7 @@ sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 gas,HEOS),
                 max_step=0.1)
 
+# EXTRACTING DATA_______________________________________________________________________________________________
 pcs = np.zeros(len(t_eval))
 Tcs = np.zeros(len(t_eval))
 pos = np.zeros(len(t_eval))
@@ -221,6 +224,8 @@ for i,t in enumerate(t_eval):
 
 fuel_mass = rho_abs*(Pr_fun(combustion_final_radius)-Pr_fun(sol['y'][0]))*grain_length
 
+
+# PLOTTING______________________________________________________________________________________________________
 inchToMM = 25.4
 combustionAndFlameMax = 88 # mm
 plt.rcParams["font.family"] = 'Times New Roman'
