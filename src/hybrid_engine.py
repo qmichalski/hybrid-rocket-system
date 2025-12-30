@@ -5,6 +5,7 @@ Created on Wed Dec 10 18:05:38 2025
 """
 
 import cantera as ct
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
@@ -27,6 +28,20 @@ grain_length = 358/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
+
+# NOZZLE DATA___________________________________________________________________________________________________
+
+M_design = 2.56
+Area_exit = math.pi * 17.51 ** 2 / 10**6
+throat_area = math.pi * 9.43 ** 2 / 10**6
+
+"""
+M_design = 2.79
+Area_exit = math.pi * 19.00 ** 2 / 10**6
+throat_area = math.pi * 8.89 ** 2 / 10**6
+# %%
+"""
+
 
 # FUEL DATA_____________________________________________________________________________________________________
 
@@ -65,7 +80,6 @@ rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
 hv = 1.8e6 # J/kg
 combustion_eff = 0.8
-throat_area = 2.54/10000
 
 Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
@@ -101,6 +115,8 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     gas.UVY = uc, 1/rhoc, Yc
     pc = gas.P # chamber pressure
     Tc = gas.T # chamber temperature
+    gamma = gas.cp/gas.cv
+    R = gas.cp - gas.cv
     hc = gas.enthalpy_mass # chamber average enthalpy
     # if t >= 0.1: # and t <= 1.1:
     massflux_injector = libMassFlux.massflux_DRYER_Q0_T0(To, 0, HEOS, pc)
@@ -144,7 +160,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
         po = HEOS.p()
         xo = HEOS.Q()
         return(pc,Tc,uc,rhoc,Yc,rho_throat, v_throat, p_throat,
-               po,To,xo,rhoo,mdot_oxidizer,mdot_fuel)
+               po,To,xo,rhoo,mdot_oxidizer,mdot_fuel,gamma,R)
     else:
         return(dzdt)
 
@@ -183,7 +199,7 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 10
+tf = 11
 t_eval = np.linspace(0,tf,100)
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 method='LSODA',t_eval=t_eval,events=combustion_quenching, 
@@ -207,6 +223,9 @@ xos = np.zeros(len(t_eval))
 mdoto = np.zeros(len(t_eval))
 mdotf = np.zeros(len(t_eval))
 thrust = np.zeros(len(t_eval))
+thrust_sum = 0
+mass_flow_rate_sum = 0
+
 for i,t in enumerate(t_eval):
     z = np.zeros(len(y0))
     z[0] = sol['y'][0,i]
@@ -214,7 +233,7 @@ for i,t in enumerate(t_eval):
     z[2] = sol['y'][2,i]
     z[3] = sol['y'][3,i]
     z[4:] = sol['y'][4:,i] 
-    pc,Tc,uc,rhoc,Yc,rho_throat,v_throat,p_throat,po,To,xo,rhoo,mdot_oxidizer,mdot_fuel = combustionDifferentialSystemWithOxidizerTank(t,z,
+    pc,Tc,uc,rhoc,Yc,rho_throat,v_throat,p_throat,po,To,xo,rhoo,mdot_oxidizer,mdot_fuel, gamma, R = combustionDifferentialSystemWithOxidizerTank(t,z,
                                                                                                              section_nozzle,
                                                                                                              ambiant_pressure,
                                                                                                              volume_oxidizer,
@@ -230,7 +249,19 @@ for i,t in enumerate(t_eval):
     xos[i] = xo
     mdoto[i] = mdot_oxidizer
     mdotf[i] = mdot_fuel
-    thrust[i] = rho_throat*throat_area*v_throat**2
+    
+    T_exit = Tc/ (1 + (gamma-1)*(M_design**2)/2)
+    a_exit = math.sqrt(gamma*R*T_exit)
+    V_exit = M_design*a_exit
+    m_dot_exit = rho_throat*throat_area*v_throat
+    
+    P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
+    thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit
+    thrust_sum = thrust_sum +thrust[i]
+    mass_flow_rate_sum = mass_flow_rate_sum + m_dot_exit
+    
+print (thrust_sum/len(sol['t']))
+print (thrust_sum/(mass_flow_rate_sum*9.81))
 
 fuel_mass = rho_abs*(Pr_fun(combustion_final_radius)-Pr_fun(sol['y'][0]))*grain_length
 
@@ -267,6 +298,6 @@ plt.show()
 plt.plot(sol['t'],thrust,color = 'red')
 plt.xlabel('Time, s')
 plt.ylabel('Thrust, N')
-plt.ylim([0,700])
+plt.ylim([0,1455])
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
