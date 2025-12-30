@@ -5,6 +5,7 @@ Created on Wed Dec 10 18:05:38 2025
 """
 
 import cantera as ct
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
@@ -27,6 +28,20 @@ grain_length = 358/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
+
+# NOZZLE DATA___________________________________________________________________________________________________
+
+M_design = 2.56
+Area_exit = math.pi * 17.51 ** 2 / 10**6
+throat_area = math.pi * 9.43 ** 2 / 10**6
+
+"""
+M_design = 2.79
+Area_exit = math.pi * 19.00 ** 2 / 10**6
+throat_area = math.pi * 8.89 ** 2 / 10**6
+# %%
+"""
+
 
 # FUEL DATA_____________________________________________________________________________________________________
 
@@ -65,7 +80,6 @@ rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
 hv = 1.8e6 # J/kg
 combustion_eff = 0.8
-throat_area = 279/1000000 #mm
 
 Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
@@ -101,6 +115,8 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     gas.UVY = uc, 1/rhoc, Yc
     pc = gas.P # chamber pressure
     Tc = gas.T # chamber temperature
+    gamma = gas.cp/gas.cv
+    R = gas.cp - gas.cv
     hc = gas.enthalpy_mass # chamber average enthalpy
     # if t >= 0.1: # and t <= 1.1:
     massflux_injector = libMassFlux.massflux_DRYER_Q0_T0(To, 0, HEOS, pc)
@@ -143,7 +159,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
         po = HEOS.p()
         xo = HEOS.Q()
         return(pc,Tc,uc,rhoc,Yc,rho_throat, v_throat, p_throat,
-               po,To,xo,rhoo,mdot_oxidizer,mdot_fuel)
+               po,To,xo,rhoo,mdot_oxidizer,mdot_fuel,gamma,R)
     else:
         return(dzdt)
 
@@ -277,6 +293,6 @@ plt.show()
 plt.plot(TVA,thrust,color = 'red')
 plt.xlabel('Time, s')
 plt.ylabel('Thrust, N')
-plt.ylim([0,700])
+plt.ylim([0,1455])
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
