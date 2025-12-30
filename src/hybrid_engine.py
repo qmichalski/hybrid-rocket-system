@@ -3,7 +3,6 @@ Created on Wed Dec 10 18:05:38 2025
 
 @author: quent,guillaume
 """
-"i hate differentials"
 
 import cantera as ct
 import numpy as np
