@@ -65,7 +65,7 @@ rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
 hv = 1.8e6 # J/kg
 combustion_eff = 0.8
-
+throat_area = 2.54/10000
 
 Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
@@ -198,6 +198,7 @@ Tos = np.zeros(len(t_eval))
 xos = np.zeros(len(t_eval))
 mdoto = np.zeros(len(t_eval))
 mdotf = np.zeros(len(t_eval))
+thrust = np.zeros(len(t_eval))
 for i,t in enumerate(t_eval):
     z = np.zeros(len(y0))
     z[0] = sol['y'][0,i]
@@ -221,6 +222,7 @@ for i,t in enumerate(t_eval):
     xos[i] = xo
     mdoto[i] = mdot_oxidizer
     mdotf[i] = mdot_fuel
+    thrust[i] = rho_throat*throat_area*v_throat**2
 
 fuel_mass = rho_abs*(Pr_fun(combustion_final_radius)-Pr_fun(sol['y'][0]))*grain_length
 
@@ -252,7 +254,11 @@ ax[0].set_ylabel('T, K | P, kPa')
 ax[1].set_ylabel('$\dot{m}, g/s$')
 ax[2].set_ylabel('Mixture Ratio')
 ax[3].set_ylabel('Grain mass, g')
+plt.show()
 
-
+plt.plot(sol['t'],thrust,color = 'red')
+plt.xlabel('Time, s')
+plt.ylabel('Thrust, N')
+plt.ylim([0,700])
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
