@@ -72,7 +72,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
         area_combustion = 0
         section_combustor = Pr_fun(combustion_final_radius-quench_radius)
         mdot_fuel = 0
-        T_burnt_products = To
+        #T_burnt_products = To
         Y_burnt_products = Y_oxidizer
         h_reactants_mix = h_oxidizer
         regression_rate = 0
@@ -164,7 +164,7 @@ gas = ct.Solution('gri30_highT.yaml')
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
-numberofarms = 0 #only used for grains with radial features
+numberofarms = 6 #only used for grains with radial features
 grain_length = 358/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
@@ -200,7 +200,7 @@ tran.set_customary_units('nonlinear', 3.75, 141.40, 0.0, 2.60, 13.00)
 fuel.transport = tran
 gas.add_species(fuel)
 
-ambiant_pressure = 1e5
+ambiant_pressure = 101235
 T0 = 300
 oxidizer = 'N2O:1'
 gas.TPX = T0,ambiant_pressure,oxidizer
@@ -215,7 +215,7 @@ HEOS.update(CP.QT_INPUTS, 0, T0)
 T_abs = T0
 diameter_nozzle = 2*9.43e-3 # m
 section_nozzle = np.pi*(diameter_nozzle/2)**2
-volume_oxidizer = 2*4.63e-3
+volume_oxidizer = 4.63e-3
 section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
 rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
@@ -240,7 +240,7 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 20
+tf = 10
 t_eval = np.linspace(0,tf,100)
 
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
