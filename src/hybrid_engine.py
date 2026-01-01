@@ -267,7 +267,8 @@ mdotf = []
 thrust = []
 TVA = []
 mdottotf = []
-
+thrust_sum = 0
+mass_flow_rate_sum = 0
 for i,t in enumerate(sol['t']):
     # try:
     z = np.zeros(len(y0))
@@ -297,6 +298,15 @@ for i,t in enumerate(sol['t']):
     else:
         mdottotf.append(0)
     thrust.append(rho_throat*throat_area*v_throat**2)
+    T_exit = Tc/ (1 + (gamma-1)*(M_design**2)/2)
+    a_exit = math.sqrt(gamma*R*T_exit)
+    V_exit = M_design*a_exit
+    m_dot_exit = rho_throat*throat_area*v_throat
+    
+    P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
+    thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit
+    thrust_sum = thrust_sum +thrust[i]
+    mass_flow_rate_sum = mass_flow_rate_sum + m_dot_exit
     TVA.append(t)
     # except:
         # print("oh no", t)
