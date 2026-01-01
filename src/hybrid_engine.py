@@ -142,7 +142,7 @@ def tank_empty(t,z,section_nozzle,
     Yc = mYc/mc
     gas.UVY = uc, 1/rhoc, Yc
     pc = gas.P # chamber pressure
-    return(po-pc)
+    return(po-pc-1)
 
 # combustion_quenching.terminal = True
 # combustion_quenching.direction = -1
@@ -240,7 +240,7 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 10
+tf = 15
 t_eval = np.linspace(0,tf,100)
 
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
@@ -254,7 +254,7 @@ sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
                 Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                 gas,HEOS),
-                max_step=0.1)
+                max_step=0.01)
 
 # EXTRACTING DATA_______________________________________________________________________________________________
 pcs = []
