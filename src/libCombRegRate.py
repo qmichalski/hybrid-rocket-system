@@ -8,7 +8,7 @@ Created on Sat Dec 13 21:56:13 2025
 import cantera as ct
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import root
+from scipy.optimize import root_scalar
 from scipy.optimize import minimize_scalar
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
@@ -26,11 +26,11 @@ def regRateEilers(T_combustion,T_abs,Pr,cp_abs,rho_abs,hv,mdot_ox,viscosity_ox,s
 def _diff_regRate(mdot_fuel,h_fuel,Y_fuel,pc,h_oxidizer,Y_oxidizer,
                   T_abs,cp_abs,rho_abs,hv,area_combustion,
                   mdot_oxidizer,section_combustor,combustor_length,combustion_eff,gas,fulloutput=False,choice='Eilers'):
-    mdot_reactants = mdot_oxidizer+mdot_fuel[0]
+    mdot_reactants = mdot_oxidizer+mdot_fuel
     gas.HPY = h_oxidizer, pc, Y_oxidizer
     viscosity_ox = gas.viscosity # Pa.s
-    h_reactants_mix = (mdot_oxidizer*h_oxidizer+mdot_fuel[0]*h_fuel)/(mdot_reactants) 
-    Y_reactants_mix = (mdot_oxidizer*Y_oxidizer+mdot_fuel[0]*Y_fuel)/(mdot_reactants)
+    h_reactants_mix = (mdot_oxidizer*h_oxidizer+mdot_fuel*h_fuel)/(mdot_reactants) 
+    Y_reactants_mix = (mdot_oxidizer*Y_oxidizer+mdot_fuel*Y_fuel)/(mdot_reactants)
     gas.HPY = h_reactants_mix, pc, Y_reactants_mix 
     gas.equilibrate('HP')
     Y_adiabatic_burnt_products = gas.Y
@@ -44,7 +44,7 @@ def _diff_regRate(mdot_fuel,h_fuel,Y_fuel,pc,h_oxidizer,Y_oxidizer,
     # print(mdot_fuel[0],mdot_fuel_calc,r,mdot_oxidizer/mdot_fuel[0])
     if fulloutput:
         return(T_burnt_products,Y_burnt_products,h_reactants_mix,r)
-    return(mdot_fuel[0]-mdot_fuel_calc)
+    return(mdot_fuel-mdot_fuel_calc)
 
 def solveCombustion(h_fuel,Y_fuel,Pc,h_oxidizer,Y_oxidizer,
                   T_abs,cp_abs,rho_abs,hv,area_combustion,
@@ -52,11 +52,11 @@ def solveCombustion(h_fuel,Y_fuel,Pc,h_oxidizer,Y_oxidizer,
     # getting stoichiometric mixture ratio for further calculation
     gas.set_equivalence_ratio(1,fuel=Y_fuel,oxidizer=Y_oxidizer,basis='mass')
     MRst = sum(gas.Y[np.where(Y_oxidizer>0)[0]])/sum(gas.Y[np.where(Y_fuel>0)[0]])
-    sol = root(_diff_regRate,x0=mdot_oxidizer/MRst,
+    sol = root_scalar(_diff_regRate,x0=mdot_oxidizer/MRst,bracket=(0,mdot_oxidizer*1e3),
                args=(h_fuel,Y_fuel,Pc,h_oxidizer,Y_oxidizer,
                      T_abs,cp_abs,rho_abs,hv,area_combustion,
-                     mdot_oxidizer,section_combustor,combustor_length,combustion_eff,gas))
-    mdot_fuel = sol['x']
+                     mdot_oxidizer,section_combustor,combustor_length,combustion_eff,gas),method="brentq")
+    mdot_fuel = sol.root# ['x']
     T_burnt_products,Y_burnt_products,h_reactants_mix,r = _diff_regRate(
                      mdot_fuel,h_fuel,Y_fuel,Pc,h_oxidizer,Y_oxidizer,
                      T_abs,cp_abs,rho_abs,hv,area_combustion,
