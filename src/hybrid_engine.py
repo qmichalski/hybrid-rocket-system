@@ -21,7 +21,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
                                                  volume_oxidizer,
                                                  section_injector,
                                                  Y_oxidizer,
-                                                 Swr_fun,Pr_fun,combustion_final_radius,grain_length,
+                                                 Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
                                                  Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                                                  gas,HEOS,fulloutput=False):
     combustion_radius = z[0] # combustion radius
@@ -37,7 +37,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     ho = HEOS.hmass()
     uc = Uc/mc # chamber averaged specific internal energy
     combustor_length = grain_length
-    quench_radius = 0 # 1e-3 # mm
+    # quench_radius = 1e-3 # 1e-3 # mm
     if combustion_radius > combustion_final_radius-quench_radius:
         volume_combustor = Pr_fun(combustion_final_radius-quench_radius)*combustor_length
     else:
@@ -72,9 +72,9 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
         area_combustion = 0
         section_combustor = Pr_fun(combustion_final_radius-quench_radius)
         mdot_fuel = 0
-        T_burnt_products = Tc
-        Y_burnt_products = Yc
-        h_reactants_mix = hc
+        T_burnt_products = To
+        Y_burnt_products = Y_oxidizer
+        h_reactants_mix = h_oxidizer
         regression_rate = 0
     combustionVolumedVdt = area_combustion*regression_rate # to calculate expansion work
     mdot_reactants = mdot_oxidizer+mdot_fuel
@@ -103,22 +103,22 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
         return(dzdt)
 
 # COMBUSTION QUENCHING__________________________________________________________________________________________
-def combustion_quenching(t,z,section_nozzle,
-                        ambiant_pressure,
-                        volume_oxidizer,
-                        section_injector,
-                        Y_oxidizer,
-                        Swr_fun,Pr_fun,combustion_final_radius,grain_length,
-                        Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
-                        gas,HEOS):
-    return(combustion_final_radius-z[0])
+# def combustion_quenching(t,z,section_nozzle,
+#                         ambiant_pressure,
+#                         volume_oxidizer,
+#                         section_injector,
+#                         Y_oxidizer,
+#                         Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
+#                         Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
+#                         gas,HEOS):
+#     return(combustion_final_radius-z[0])
 
 def tank_empty(t,z,section_nozzle,
                         ambiant_pressure,
                         volume_oxidizer,
                         section_injector,
                         Y_oxidizer,
-                        Swr_fun,Pr_fun,combustion_final_radius,grain_length,
+                        Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
                         Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                         gas,HEOS):
     combustion_radius = z[0] # combustion radius
@@ -133,7 +133,7 @@ def tank_empty(t,z,section_nozzle,
     po = HEOS.p()
     uc = Uc/mc # chamber averaged specific internal energy
     combustor_length = grain_length
-    quench_radius = 0 # 1e-3 # mm
+    # quench_radius = 1e-3 # mm
     if combustion_radius > combustion_final_radius-quench_radius:
         volume_combustor = Pr_fun(combustion_final_radius-quench_radius)*combustor_length
     else:
@@ -144,8 +144,8 @@ def tank_empty(t,z,section_nozzle,
     pc = gas.P # chamber pressure
     return(po-pc)
 
-combustion_quenching.terminal = True
-combustion_quenching.direction = -1
+# combustion_quenching.terminal = True
+# combustion_quenching.direction = -1
 tank_empty.terminal = True
 tank_empty.direction = -1
 
@@ -215,12 +215,13 @@ HEOS.update(CP.QT_INPUTS, 0, T0)
 T_abs = T0
 diameter_nozzle = 2*9.43e-3 # m
 section_nozzle = np.pi*(diameter_nozzle/2)**2
-volume_oxidizer = 4.63e-3
+volume_oxidizer = 2*4.63e-3
 section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
 rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
 hv = 1.8e6 # J/kg
 combustion_eff = 0.8
+quench_radius = 1e-3
 
 Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
@@ -239,18 +240,18 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 12
+tf = 20
 t_eval = np.linspace(0,tf,100)
 
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
-                method='LSODA',t_eval=t_eval,events=(combustion_quenching,tank_empty), 
+                method='LSODA',t_eval=t_eval,events=(tank_empty), 
                 args=(
                 section_nozzle,
                 ambiant_pressure,
                 volume_oxidizer,
                 section_injector,
                 Y_oxidizer,
-                Swr_fun,Pr_fun,combustion_final_radius,grain_length,
+                Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
                 Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                 gas,HEOS),
                 max_step=0.1)
@@ -281,7 +282,7 @@ for i,t in enumerate(sol['t']):
                                                                                                              volume_oxidizer,
                                                                                                              section_injector,
                                                                                                              Y_oxidizer,
-                                                                                                             Swr_fun,Pr_fun,combustion_final_radius,grain_length,
+                                                                                                             Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
                                                                                                              Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                                                                                                              gas,HEOS,fulloutput=True)
     pcs.append(pc/1e3)
@@ -291,7 +292,10 @@ for i,t in enumerate(sol['t']):
     xos.append(xo)
     mdoto.append(mdot_oxidizer*1e3)
     mdotf.append(mdot_fuel*1e3)
-    mdottotf.append(mdot_oxidizer/mdot_fuel)
+    if mdot_fuel > 0:
+        mdottotf.append(mdot_oxidizer/mdot_fuel)
+    else:
+        mdottotf.append(0)
     thrust.append(rho_throat*throat_area*v_throat**2)
     TVA.append(t)
     # except:
