@@ -311,6 +311,7 @@ for i,t in enumerate(sol['t']):
     else:
         if stop < 2:
             thrust_finish = i
+            thrust_time = t
             stop =stop + 1
         thrust[i] = 0
     thrust_sum = thrust_sum +thrust[i]
@@ -357,12 +358,15 @@ plt.show()
 max_thrust = max(thrust)
 xmax = thrust.index(max_thrust)
 average_thrust = sum(thrust)/thrust_finish
-max_thrust_text ='peak thrust', round(max_thrust), 'N'
-average_thrust_text = 'average thrust', round(average_thrust), 'N'
+max_thrust_text = ('peak thrust ', str(round(max_thrust)), ' N')
+average_thrust_text = ('average thrust '+ str(round(average_thrust))+ ' N')
+average_thrust_display = average_thrust+10
+display_point = (max(TVA)/1.5)
+total_impulse = average_thrust*thrust_time
+print(total_impulse)
 
-display_point = (max(TVA)/1.5)+10
 plt.annotate(max_thrust_text, xy = (xmax,max_thrust))
-plt.annotate(average_thrust_text, xy = (display_point,average_thrust))
+plt.annotate(average_thrust_text, xy = (display_point,average_thrust_display))
 plt.hlines(average_thrust, 0, max(TVA),colors = 'blue')
 plt.ylim([0,max(thrust)+100])
 plt.plot(TVA,thrust,color = 'red')
