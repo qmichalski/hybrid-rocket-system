@@ -358,7 +358,7 @@ plt.show()
 max_thrust = max(thrust)
 xmax = thrust.index(max_thrust)
 average_thrust = sum(thrust)/thrust_finish
-max_thrust_text = ('peak thrust ', str(round(max_thrust)), ' N')
+max_thrust_text = ('peak thrust '+ str(round(max_thrust))+ ' N')
 average_thrust_text = ('average thrust '+ str(round(average_thrust))+ ' N')
 average_thrust_display = average_thrust+10
 display_point = (max(TVA)/1.5)
