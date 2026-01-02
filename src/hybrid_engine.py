@@ -142,7 +142,7 @@ def tank_empty(t,z,section_nozzle,
     Yc = mYc/mc
     gas.UVY = uc, 1/rhoc, Yc
     pc = gas.P # chamber pressure
-    return(po-pc-1)
+    return(po-pc-10)
 
 # combustion_quenching.terminal = True
 # combustion_quenching.direction = -1
@@ -240,8 +240,8 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 15
-t_eval = np.linspace(0,tf,100)
+tf = 50
+t_eval = np.linspace(0,tf,1000)
 
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 method='LSODA',t_eval=t_eval,events=(tank_empty), 
@@ -265,10 +265,12 @@ xos = []
 mdoto = []
 mdotf = []
 thrust = []
-TVA = []
+TVA = [] # time varience authority
 mdottotf = []
+stop = 0
 thrust_sum = 0
 mass_flow_rate_sum = 0
+
 for i,t in enumerate(sol['t']):
     # try:
     z = np.zeros(len(y0))
@@ -304,7 +306,13 @@ for i,t in enumerate(sol['t']):
     m_dot_exit = rho_throat*throat_area*v_throat
     
     P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
-    thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit
+    if m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit > 0:
+        thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit
+    else:
+        if stop < 2:
+            thrust_finish = i
+            stop =stop + 1
+        thrust[i] = 0
     thrust_sum = thrust_sum +thrust[i]
     mass_flow_rate_sum = mass_flow_rate_sum + m_dot_exit
     TVA.append(t)
@@ -346,9 +354,20 @@ ax[2].set_ylabel('Mixture Ratio')
 ax[3].set_ylabel('Grain mass, g')
 plt.show()
 
+max_thrust = max(thrust)
+xmax = thrust.index(max_thrust)
+average_thrust = sum(thrust)/thrust_finish
+max_thrust_text ='peak thrust', round(max_thrust), 'N'
+average_thrust_text = 'average thrust', round(average_thrust), 'N'
+
+display_point = (max(TVA)/1.5)+10
+plt.annotate(max_thrust_text, xy = (xmax,max_thrust))
+plt.annotate(average_thrust_text, xy = (display_point,average_thrust))
+plt.hlines(average_thrust, 0, max(TVA),colors = 'blue')
+plt.ylim([0,max(thrust)+100])
 plt.plot(TVA,thrust,color = 'red')
 plt.xlabel('Time, s')
 plt.ylabel('Thrust, N')
-plt.ylim([0,1455])
+plt.show()
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
