@@ -13,7 +13,6 @@ import CoolProp.CoolProp as CP
 import libCombRegRate
 import libMassFlux
 import grain_geometry_lib
-from scipy.optimize import root
 
 # MAIN CHAMBER FUNCTION_________________________________________________________________________________________
 def combustionDifferentialSystemWithOxidizerTank(t,z,
@@ -53,7 +52,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     hc = gas.enthalpy_mass # chamber average enthalpy
     # if t >= 0.1: # and t <= 1.1:
     massflux_injector = libMassFlux.massflux_DRYER_Q0_T0(To, 0, HEOS, pc)
-    mdot_oxidizer = 0.65*massflux_injector*section_injector # Cd to be passed as coefficient
+    mdot_oxidizer = 0.61*massflux_injector*section_injector # Cd to be passed as coefficient
     rho_throat, v_throat, p_throat = libMassFlux.throat_flow(gas,ambiant_pressure)
     massflow_throat = rho_throat*v_throat*section_nozzle
     #calculating burnt gas properties
@@ -145,12 +144,6 @@ def tank_empty(t,z,section_nozzle,
     pc = gas.P # chamber pressure
     return(po-pc-10)
 
-def mach_exit_by_area(x,gamma,Ae_at):
-    machRHS = (((gamma+1)/2)**(-1*(gamma+1)/(2*(gamma-1)))*((1+((gamma-1)/2)*x**2)**((gamma+1)/(2*(gamma-1))))/x) - Ae_at
-    #print(machRHS)
-    #print(t)
-    return(machRHS)
-
 # combustion_quenching.terminal = True
 # combustion_quenching.direction = -1
 tank_empty.terminal = True
@@ -169,24 +162,20 @@ gas = ct.Solution('gri30_highT.yaml')
 
 #input parameters for grain ignore parameters not used in type of grain in m ___________________________________
 
-chamber_outer_radius = 36/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
-numberofarms = 8 #only used for grains with radial features
-grain_length = 369/1000 #358/1000
-graincentreradius = 20/1000# cots configuration
-armheight = 2/1000 #only used for grains with radial features
-armwidth = 2/1000 #4.229/1000 #only used for grains with radial features
+numberofarms = 6 #only used for grains with radial features
+grain_length = 358/1000
+graincentreradius = 10/1000
+armheight = 8/1000 #only used for grains with radial features
+armwidth = 4.229/1000 #only used for grains with radial features
 
 # NOZZLE DATA___________________________________________________________________________________________________
-diameter_nozzle = 19.812e-3 # m
-radius_nozzle  = diameter_nozzle/2
-section_nozzle = np.pi*(radius_nozzle)**2
+
 M_design = 2.56
-radius_exit = 22.4/1000
-area_exit = math.pi * radius_exit ** 2
-throat_area = math.pi * radius_nozzle ** 2
-Ae_at = (area_exit/throat_area)
- 
+Area_exit = math.pi * 17.51 ** 2 / 10**6
+throat_area = math.pi * 9.43 ** 2 / 10**6
+
 """
 M_design = 2.79
 Area_exit = math.pi * 19.00 ** 2 / 10**6
@@ -224,9 +213,10 @@ gas.TPX = T0,ambiant_pressure,'O2:0.21,N2:0.79'
 HEOS.update(CP.QT_INPUTS, 0, T0)
 # combustor_length = 150e-3 
 T_abs = T0
+diameter_nozzle = 2*9.43e-3 # m
+section_nozzle = np.pi*(diameter_nozzle/2)**2
 volume_oxidizer = 4.63e-3
 section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
-discharge_coefficent = 0.65
 rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
 hv = 1.8e6 # J/kg
@@ -275,7 +265,6 @@ xos = []
 mdoto = []
 mdotf = []
 thrust = []
-Mach_number_exit =[]
 TVA = [] # time varience authority
 mdottotf = []
 stop = 0
@@ -311,19 +300,14 @@ for i,t in enumerate(sol['t']):
     else:
         mdottotf.append(0)
     thrust.append(rho_throat*throat_area*v_throat**2)
-    mach_exit_solver = root(mach_exit_by_area,100,args=(gamma,Ae_at))
-    mach_exit = mach_exit_solver['x']
-    mach_exit = mach_exit[0]
-    Mach_number_exit.append(mach_exit)
-    T_exit = Tc/ (1 + (gamma-1)*(mach_exit**2)/2)
+    T_exit = Tc/ (1 + (gamma-1)*(M_design**2)/2)
     a_exit = math.sqrt(gamma*R*T_exit)
-    V_exit = mach_exit*a_exit
-    m_dot_exit = (rho_throat*throat_area*v_throat)
-    #V_exit = m_dot_exit/rho_throat*Area_exit
-    P_exit = p_throat*area_exit*V_exit
-    P_exit = pc /( (1 + (gamma-1)*(mach_exit**2)/2)**(gamma/(gamma-1)))
-    if m_dot_exit*V_exit + (P_exit - ambiant_pressure)*area_exit > 0:
-        thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*area_exit
+    V_exit = M_design*a_exit
+    m_dot_exit = rho_throat*throat_area*v_throat
+    
+    P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
+    if m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit > 0:
+        thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit
     else:
         if stop < 2:
             thrust_finish = i
@@ -373,15 +357,13 @@ plt.show()
 
 max_thrust = max(thrust)
 xmax = thrust.index(max_thrust)
-max_thrust = np.round(max_thrust)
 average_thrust = sum(thrust)/thrust_finish
-average_thrust = np.round(average_thrust)
-max_thrust_text = ('peak thrust '+ str(max_thrust)+ ' N')
-average_thrust_text = ('average thrust '+ str(average_thrust)+ ' N')
+max_thrust_text = ('peak thrust '+ str(round(max_thrust))+ ' N')
+average_thrust_text = ('average thrust '+ str(round(average_thrust))+ ' N')
 average_thrust_display = average_thrust+10
 display_point = (max(TVA)/1.5)
 total_impulse = average_thrust*thrust_time
-print('total impulse', np.round(total_impulse))
+print(total_impulse)
 
 plt.annotate(max_thrust_text, xy = (xmax,max_thrust))
 plt.annotate(average_thrust_text, xy = (display_point,average_thrust_display))
@@ -393,8 +375,3 @@ plt.ylabel('Thrust, N')
 plt.show()
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
-
-plt.plot(TVA, Mach_number_exit ,color = 'red')
-plt.xlabel('Time, s')
-plt.ylabel('mach, m')
-plt.show()
