@@ -31,7 +31,7 @@ def Q_dot_funct (rho,
 # %% Mass flow rate function
 def mass_dot_evap(HEOS, c, a, n, L, A, g, P_tank, T_vap, T_fluid):
     
-    Q_dot_liq_TO_surf = 
+    Q_dot_liq_TO_surf = 1 
     return 0
 
 # %% Function for rate of change of vapour volume   
