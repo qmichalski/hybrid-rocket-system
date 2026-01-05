@@ -42,22 +42,23 @@ n_dict = {
     }
 
 
-
 # %% General Heat Transfer Function between any chosen fluid and surface
 def Q_dot_funct (HEOS_from,
                  c,
                  n,
-                 L,
+                 V,
                  A,
                  g,
                  T_from,
-                 T_to):
+                 T_to,
+                 CS = CS_tank):
     
     k = HEOS_from.conductivity
     beta = HEOS_from.first_partial_deriv(CP.iP, CP.iDmass, CP.iT)
     delta_T = T_from - T_to
     cp = HEOS_from.cpmass
     rho = HEOS_from.rhomass
+    L = V/CS
     
     Ra = cp * (rho**2) * g * beta * abs(delta_T) * (L**3)
     Nu = c*Ra*n
@@ -65,11 +66,28 @@ def Q_dot_funct (HEOS_from,
     q_dot_exchange = h * A * delta_T
     return q_dot_exchange
 
-# %% Mass flow rate function
-def mass_dot_evap_funct (HEOS, c, a, n, L, A, g, P_tank, T_vap, T_fluid):
+# %% Mass flow rate due to evaporation function
+def mass_dot_evap_funct (HEOS, c, a, n, L, A, g, P_tank, V_vap, V_liq, T_vap, T_fluid, CS = CS_tank):
     
-    Q_dot_liq_TO_surf = 1
-    return Q_dot_liq_TO_surf
+    HEOS.update(CP.PQ_INPUTS, P_tank, 1)
+    h_sat_vap = HEOS.hmass
+    
+    HEOS.update(CP.PQ_INPUTS, P_tank, 0)
+    T_surf = HEOS.T
+    h_sat_liq = HEOS.hmass
+    
+    h_vapourisation = h_sat_liq - h_sat_vap
+    
+    HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
+    Q_dot_liq_TO_surf = Q_dot_funct (HEOS, c, n, V_liq, A, g, T_liq, T_surf, CS)
+    h_liq = HEOS.hmass
+    
+    HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
+    Q_dot_surf_TO_vap = - Q_dot_funct (HEOS, c, n, V_vap, A, g, T_vap, T_surf, CS)
+    
+    m_dot_evap = (Q_dot_liq_TO_surf - Q_dot_surf_TO_vap)/ (h_vapourisation + h_sat_liq - h_liq)
+    
+    return m_dot_evap
 
 # %% Function for rate of change of vapour volume   
 def volume_dot_vap_funct (HEOS, 
