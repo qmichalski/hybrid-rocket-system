@@ -13,6 +13,9 @@ import cantera as ct
 # %% Input Data for Testing
 HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
 
+# Basic Constants
+g = 9.81
+
 # Tank Geometry
 L_tank = 1
 R_tank = 1
@@ -51,7 +54,8 @@ def Q_dot_funct (HEOS_from,
                  g,
                  T_from,
                  T_to,
-                 CS = CS_tank):
+                 CS = CS_tank
+                 ):
     
     k = HEOS_from.conductivity
     beta = HEOS_from.first_partial_deriv(CP.iP, CP.iDmass, CP.iT)
@@ -67,7 +71,20 @@ def Q_dot_funct (HEOS_from,
     return q_dot_exchange
 
 # %% Mass flow rate due to evaporation function
-def mass_dot_evap_funct (HEOS, c, a, n, L, A, g, P_tank, V_vap, V_liq, T_vap, T_fluid, CS = CS_tank):
+def mass_dot_evap_funct (HEOS, 
+                         c, 
+                         n, 
+                         L, 
+                         A, 
+                         g, 
+                         P_tank, 
+                         V_vap, 
+                         V_liq, 
+                         T_vap, 
+                         T_fluid, 
+                         E,
+                         CS = CS_tank
+                         ):
     
     HEOS.update(CP.PQ_INPUTS, P_tank, 1)
     h_sat_vap = HEOS.hmass
@@ -79,7 +96,7 @@ def mass_dot_evap_funct (HEOS, c, a, n, L, A, g, P_tank, V_vap, V_liq, T_vap, T_
     h_vapourisation = h_sat_liq - h_sat_vap
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
-    Q_dot_liq_TO_surf = Q_dot_funct (HEOS, c, n, V_liq, A, g, T_liq, T_surf, CS)
+    Q_dot_liq_TO_surf = Q_dot_funct (HEOS, c, n, V_liq, A, g, T_liq, T_surf, CS)*E
     h_liq = HEOS.hmass
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
@@ -88,6 +105,23 @@ def mass_dot_evap_funct (HEOS, c, a, n, L, A, g, P_tank, V_vap, V_liq, T_vap, T_
     m_dot_evap = (Q_dot_liq_TO_surf - Q_dot_surf_TO_vap)/ (h_vapourisation + h_sat_liq - h_liq)
     
     return m_dot_evap
+
+# %% Mass flow rate due to condensation function
+def mass_dot_cond_funct (HEOS, 
+                         c, 
+                         n, 
+                         L, 
+                         A, 
+                         g, 
+                         P_tank, 
+                         V_vap, 
+                         V_liq, 
+                         T_vap, 
+                         T_fluid, 
+                         E,
+                         CS = CS_tank
+                         ): 
+    return 0
 
 # %% Function for rate of change of vapour volume   
 def volume_dot_vap_funct (HEOS, 
