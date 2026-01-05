@@ -8,20 +8,22 @@ Created on Fri Jan  2 10:49:22 2026
 import CoolProp.CoolProp as CP
 HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
 
-# %% General Heat Transfer Function between any chosen fluid/solid and surface
-def Q_dot_funct (rho,
-                 cp,
+# %% General Heat Transfer Function between any chosen fluid and surface
+def Q_dot_funct (HEOS_from,
                  c,
                  n,
                  L,
                  A,
                  g,
-                 beta,
-                 k,
-                 T_fluid,
-                 T_surface):
+                 T_from,
+                 T_to):
     
-    delta_T = T_fluid - T_surface
+    k = HEOS_from.conductivity
+    beta = HEOS_from.first_partial_deriv(CP.iP, CP.iDmass, CP.iT)
+    delta_T = T_from - T_to
+    cp = HEOS_from.cpmass
+    rho = HEOS_from.rhomass
+    
     Ra = cp * (rho**2) * g * beta * abs(delta_T) * (L**3)
     Nu = c*Ra*n
     h = Nu * k/L
@@ -29,13 +31,13 @@ def Q_dot_funct (rho,
     return q_dot_exchange
 
 # %% Mass flow rate function
-def mass_dot_evap(HEOS, c, a, n, L, A, g, P_tank, T_vap, T_fluid):
+def mass_dot_evap_funct (HEOS, c, a, n, L, A, g, P_tank, T_vap, T_fluid):
     
-    Q_dot_liq_TO_surf = 1 
-    return 0
+    Q_dot_liq_TO_surf = 1
+    return Q_dot_liq_TO_surf
 
 # %% Function for rate of change of vapour volume   
-def volume_dot_vap_funct(HEOS, 
+def volume_dot_vap_funct (HEOS, 
                          P_tank, 
                          m_vap, 
                          m_liq, 
