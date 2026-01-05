@@ -93,7 +93,7 @@ def mass_dot_evap_funct (HEOS,
     T_surf = HEOS.T
     h_sat_liq = HEOS.hmass
     
-    h_vapourisation = h_sat_liq - h_sat_vap
+    h_vaporization = h_sat_liq - h_sat_vap
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
     Q_dot_liq_TO_surf = Q_dot_funct (HEOS, c, n, V_liq, A, g, T_liq, T_surf, CS)*E
@@ -102,7 +102,7 @@ def mass_dot_evap_funct (HEOS,
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
     Q_dot_surf_TO_vap = - Q_dot_funct (HEOS, c, n, V_vap, A, g, T_vap, T_surf, CS)
     
-    m_dot_evap = (Q_dot_liq_TO_surf - Q_dot_surf_TO_vap)/ (h_vapourisation + h_sat_liq - h_liq)
+    m_dot_evap = (Q_dot_liq_TO_surf - Q_dot_surf_TO_vap)/ (h_vaporization + h_sat_liq - h_liq)
     
     return m_dot_evap
 
