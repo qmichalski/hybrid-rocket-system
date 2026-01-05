@@ -4,9 +4,44 @@ Created on Fri Jan  2 10:49:22 2026
 
 @author: arun2
 """
-
+# %% Imports
 import CoolProp.CoolProp as CP
+import math
+import cantera as ct
+
+
+# %% Input Data for Testing
 HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
+
+# Tank Geometry
+L_tank = 1
+R_tank = 1
+CS_tank = math.pi*(R_tank**2)
+
+V_tank = L_tank*CS_tank
+
+# Initial tank data
+fill_percentage = 90/100
+L_vap = L_tank*(1 - fill_percentage)
+L_liq = L_tank*(fill_percentage)
+
+# Initial Tank conditions
+T_vap = 298.15
+T_liq = 298.15
+P_tank = 56*ct.one_atm
+
+
+# Heat Transfer Constants
+c_dict = {
+    'liquid N2O': 0.15,
+    'vapour N2O': 0.15
+    }
+n_dict = {
+    'liquid N2O': 1/3,
+    'vapour N2O': 1/3
+    }
+
+
 
 # %% General Heat Transfer Function between any chosen fluid and surface
 def Q_dot_funct (HEOS_from,
