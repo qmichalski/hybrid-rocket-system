@@ -15,6 +15,7 @@ HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
 
 # Basic Constants
 g = 9.81
+universal_gas_constant = 8.314
 
 # Tank Geometry
 L_tank = 1
@@ -44,6 +45,8 @@ n_dict = {
     'vapour N2O': 1/3
     }
 
+# Solver Inputs
+time_step = 0.01
 
 # %% General Heat Transfer Function between any chosen fluid and surface
 def Q_dot_funct (HEOS_from,
@@ -107,21 +110,30 @@ def mass_dot_evap_funct (HEOS,
     return m_dot_evap
 
 # %% Mass flow rate due to condensation function
-def mass_dot_cond_funct (HEOS, 
-                         c, 
-                         n, 
-                         L, 
-                         A, 
-                         g, 
+def mass_dot_cond_funct (HEOS,
                          P_tank, 
                          V_vap, 
-                         V_liq, 
                          T_vap, 
                          T_fluid, 
                          E,
-                         CS = CS_tank
-                         ): 
-    return 0
+                         CS = CS_tank,
+                         R_universal = universal_gas_constant,
+                         delta_t = time_step):
+    
+    HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
+    
+    Molar_mass = HEOS.molar_mass
+    Z = HEOS.compressibility_factor
+    
+    HEOS.update(CP.QT_INPUTS, 1, T_vap)
+    P_sat_vap = HEOS.P
+    
+    if P_tank>P_sat_vap:
+        m_dot_cond = (P_tank - P_sat_vap) * V_vap * Molar_mass/ (Z * R_universal * T_vap * delta_t)
+    else:
+        m_dot_cond = 0
+    
+    return m_dot_cond
 
 # %% Function for rate of change of vapour volume   
 def volume_dot_vap_funct (HEOS, 
