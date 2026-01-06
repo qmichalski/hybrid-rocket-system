@@ -13,8 +13,7 @@ import libCombRegRate
 import libMassFlux
 import grain_geometry_lib
 
-<<<<<<< Updated upstream
-=======
+
 # MAIN CHAMBER FUNCTION_________________________________________________________________________________________
 def combustionDifferentialSystemWithOxidizerTank(t,z,
                                                  section_nozzle,
@@ -156,7 +155,6 @@ tank_empty.direction = -1
 # create the new reduced mechanism
 # gas = ct.Solution(thermo='ideal-gas',species=species)
 
->>>>>>> Stashed changes
 plt.rcParams['axes.grid'] = True
 #fluid libraries
 HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
@@ -167,13 +165,10 @@ gas = ct.Solution('gri30_highT.yaml')
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
 numberofarms = 6 #only used for grains with radial features
-<<<<<<< Updated upstream
 grain_length = 358/1000
 graincentreradius = 5/1000
-=======
 grain_length = 3580/1000
 graincentreradius = 10/1000
->>>>>>> Stashed changes
 armheight = 8/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
 
@@ -332,14 +327,9 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-<<<<<<< Updated upstream
-tf = 10
-t_eval = np.linspace(0,tf,100)
-=======
+
 tf = 50
 t_eval = np.linspace(0,tf,1000)
-
->>>>>>> Stashed changes
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 method='LSODA',t_eval=t_eval,events=combustion_quenching, 
                 args=(
@@ -351,7 +341,7 @@ sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 Swr_fun,Pr_fun,combustion_final_radius,grain_length,
                 Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                 gas,HEOS),
-                max_step=0.1)
+                max_step=0.01)
 
 # EXTRACTING DATA_______________________________________________________________________________________________
 pcs = np.zeros(len(t_eval))

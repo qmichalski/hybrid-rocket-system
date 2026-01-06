@@ -170,9 +170,9 @@ def volume_dot_vap_funct (HEOS,
 def volume_dot_liq_funct(V_dot_vap):
     return -V_dot_vap
 # %% Function for rate of change of fluid phase temperature
-def temperature_dot_funct ():
+def temperature_dot_funct (HEOS, P_tank, T_phase):
     HEOS.update(CP.PT_INPUTS, P_tank, T_phase)
     cv_phase = HEOS.cvmass
     u_phase = HEOS.umass
-    partial_du_drho_vap
+    partial_du_drho_phase = HEOS.first_partial_deriv(CP.iUmass, CP.iDmass, CP.iT)
     
