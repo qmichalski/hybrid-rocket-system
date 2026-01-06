@@ -143,6 +143,10 @@ def tank_empty(t,z,section_nozzle,
     gas.UVY = uc, 1/rhoc, Yc
     pc = gas.P # chamber pressure
     return(po-pc-10)
+<<<<<<< HEAD
+=======
+    return(((pc-po)/pc)-10)
+>>>>>>> parent of 6f9b47d (Update hybrid_engine.py)
 
 # combustion_quenching.terminal = True
 # combustion_quenching.direction = -1
