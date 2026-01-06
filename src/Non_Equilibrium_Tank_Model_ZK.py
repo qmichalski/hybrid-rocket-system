@@ -2,7 +2,7 @@
 """
 Created on Fri Jan  2 10:49:22 2026
 
-@author: Arun Ramachandran Nair
+@author: arun2
 """
 # %% Imports
 import CoolProp.CoolProp as CP
@@ -71,7 +71,6 @@ def Q_dot_funct (HEOS_from,
     Nu = c*Ra*n
     h = Nu * k/L
     q_dot_exchange = h * A * delta_T
-    
     return q_dot_exchange
 
 # %% Mass flow rate due to evaporation function
@@ -119,8 +118,7 @@ def mass_dot_cond_funct (HEOS,
                          E,
                          CS = CS_tank,
                          R_universal = universal_gas_constant,
-                         delta_t = time_step
-                         ):
+                         delta_t = time_step):
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
     
@@ -147,8 +145,7 @@ def volume_dot_vap_funct (HEOS,
                          V_vap, V_liq, 
                          T_vap, T_liq, 
                          T_dot_vap, 
-                         T_dot_liq
-                         ):
+                         T_dot_liq):
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
     partial_dP_dT_liq = HEOS.first_partial_deriv(CP.iP, CP.iT, CP.iDmass)
