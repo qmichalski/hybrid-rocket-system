@@ -143,6 +143,7 @@ def tank_empty(t,z,section_nozzle,
     gas.UVY = uc, 1/rhoc, Yc
     pc = gas.P # chamber pressure
     return(po-pc-10)
+    return(((pc-po)/pc)-10)
 
 # combustion_quenching.terminal = True
 # combustion_quenching.direction = -1
