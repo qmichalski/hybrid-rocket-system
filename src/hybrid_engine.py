@@ -215,7 +215,7 @@ HEOS.update(CP.QT_INPUTS, 0, T0)
 T_abs = T0
 diameter_nozzle = 2*9.43e-3 # m
 section_nozzle = np.pi*(diameter_nozzle/2)**2
-volume_oxidizer = 4.63e-3
+volume_oxidizer = 4.63e-3 # in M^3
 section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
 rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
