@@ -34,7 +34,8 @@ def tank_model_funct(t,z, # Main Variables
 # Intermediate parameters___________________________________________________________________________________________________
     dmass_OUT = 0
     HEOS.update(CP.PQ_INPUTS, pressure_tank, 0)
-    temperature_surf = HEOS.T
+    temperature_surf = HEOS.T()
+    print(temperature_surf,temperature_LIQ)
     
 # Mass transfer rate for evaporation and condensation_______________________________________________________________________
     dheat_in_liq = ZK.Heat_dot_funct (HEOS, 
@@ -181,7 +182,8 @@ def tank_model_funct(t,z, # Main Variables
 
 # %% Input Data for Testing
 HEOS = CP.AbstractState("HEOS&BICUBIC",'NitrousOxide')
-
+HEOS.update(CP.PT_INPUTS,56*101325, 298)
+print(HEOS.T())
 # Basic Constants
 g = 9.81
 universal_gas_constant = 8.314
@@ -197,6 +199,10 @@ V_tank = L_tank*CS_tank
 fill_percentage = 90/100
 L_vap = L_tank*(1 - fill_percentage)
 L_liq = L_tank*(fill_percentage)
+V_vap = L_vap*CS_tank
+V_liq = L_liq*CS_tank
+m_vap = 1
+m_liq = 1
 
 # Initial Tank conditions
 T_vap = 298.15
@@ -217,10 +223,6 @@ n_dict = {
 # Solver Inputs
 time_step = 0.01
 
-m_vap = 1
-m_liq = 1
-V_vap = L_vap*CS_tank
-V_liq = L_liq*CS_tank
 
 threshold = 0.01
 E = 693

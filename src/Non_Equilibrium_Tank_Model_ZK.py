@@ -60,11 +60,11 @@ def Heat_dot_funct (HEOS_from,
                  CS = CS_tank
                  ):
     
-    k = HEOS_from.conductivity
+    k = HEOS_from.conductivity()
     beta = HEOS_from.first_partial_deriv(CP.iP, CP.iDmass, CP.iT)
     delta_T = T_from - T_to
-    cp = HEOS_from.cpmass
-    rho = HEOS_from.rhomass
+    cp = HEOS_from.cpmass()
+    rho = HEOS_from.rhomass()
     L = V/CS
     
     Ra = cp * (rho**2) * g * beta * abs(delta_T) * (L**3)
@@ -90,17 +90,17 @@ def mass_dot_evap_funct (HEOS,
                          ):
     
     HEOS.update(CP.PQ_INPUTS, P_tank, 1)
-    h_sat_vap = HEOS.hmass
+    h_sat_vap = HEOS.hmass()
     
     HEOS.update(CP.PQ_INPUTS, P_tank, 0)
-    T_surf = HEOS.T
-    h_sat_liq = HEOS.hmass
+    T_surf = HEOS.T()
+    h_sat_liq = HEOS.hmass()
     
     h_vaporization = h_sat_liq - h_sat_vap
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
     Q_dot_liq_TO_surf = Heat_dot_funct (HEOS, c["liquid N2O"], n["liquid N2O"], V_liq, A, g, T_liq, T_surf, CS)*E
-    h_liq = HEOS.hmass
+    h_liq = HEOS.hmass()
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
     Q_dot_surf_TO_vap = - Heat_dot_funct (HEOS, c["vapour N2O"], n["vapour N2O"], V_vap, A, g, T_vap, T_surf, CS)
@@ -122,11 +122,11 @@ def mass_dot_cond_funct (HEOS,
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
     
-    Molar_mass = HEOS.molar_mass
-    Z = HEOS.compressibility_factor
+    Molar_mass = HEOS.molar_mass()
+    Z = HEOS.compressibility_factor()
     
     HEOS.update(CP.QT_INPUTS, 1, T_vap)
-    P_sat_vap = HEOS.P
+    P_sat_vap = HEOS.P()
     
     if P_tank>P_sat_vap:
         m_dot_cond = (P_tank - P_sat_vap) * V_vap * Molar_mass/ (Z * R_universal * T_vap * delta_t)
@@ -143,15 +143,15 @@ def mass_dot_outlet_funct (HEOS,
                            T_upstream, 
                            P_downstream):
     HEOS.update(CP.QT_INPUTS, 0, T_upstream)
-    P_sat = HEOS.P
+    P_sat = HEOS.P()
     
     HEOS.update(CP.PT_INPUTS, P_upstream, T_upstream)
-    rho_upstream = HEOS.rhomass
-    h_upstream = HEOS.hmass
+    rho_upstream = HEOS.rhomass()
+    h_upstream = HEOS.hmass()
     
     HEOS.update(CP.PQ_INPUTS, P_downstream, 0)
-    h_downstream = HEOS.hmass
-    rho_downstream = HEOS.rhomass
+    h_downstream = HEOS.hmass()
+    rho_downstream = HEOS.rhomass()
     
     G_SPI = Cd*math.sqrt(2*rho_upstream*(P_upstream - P_downstream))
     G_HEM = Cd*rho_downstream*math.sqrt(2*(h_upstream - h_downstream))
@@ -182,15 +182,15 @@ def volume_dot_vap_funct (HEOS,
     HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
     partial_dP_dT_liq = HEOS.first_partial_deriv(CP.iP, CP.iT, CP.iDmass)
     partial_dP_drho_liq = HEOS.first_partial_deriv(CP.iP, CP.iDmass, CP.iT)
-    cv_liq = HEOS.cvmass
-    h_evap = HEOS.hmass
-    h_out = HEOS.hmass
+    cv_liq = HEOS.cvmass()
+    h_evap = HEOS.hmass()
+    h_out = HEOS.hmass()
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
     partial_dP_dT_vap = HEOS.first_partial_deriv(CP.iP, CP.iT, CP.iDmass)
     partial_dP_drho_vap = HEOS.first_partial_deriv(CP.iP, CP.iDmass, CP.iT)
-    cv_vap = HEOS.cvmass
-    h_cond = HEOS.hmass
+    cv_vap = HEOS.cvmass()
+    h_cond = HEOS.hmass()
 
     f_2 = m_dot_liq/V_liq * partial_dP_drho_liq - m_dot_vap/V_vap * partial_dP_drho_vap
     f_3 = m_liq/(V_liq**2) * partial_dP_drho_liq - m_vap/(V_vap**2) * partial_dP_drho_vap
@@ -227,8 +227,8 @@ def temperature_dot_funct (HEOS,
                            ):
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_phase)
-    cv_phase = HEOS.cvmass
-    u_phase = HEOS.umass
+    cv_phase = HEOS.cvmass()
+    u_phase = HEOS.umass()
     partial_du_drho_phase = HEOS.first_partial_deriv(CP.iUmass, CP.iDmass, CP.iT)
     
     T_dot_phase = (1/cv_phase)*( (U_dot_phase - u_phase*m_dot_phase)/m_phase - partial_du_drho_phase*rho_dot_phase)
@@ -272,10 +272,10 @@ def energy_dot_vap_funct(HEOS,
                          V_dot_vap):
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
-    h_evap = HEOS.hmass
+    h_evap = HEOS.hmass()
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
-    h_cond = HEOS.hmass
+    h_cond = HEOS.hmass()
     
     U_dot_vap = m_dot_evap*h_evap - m_dot_cond*h_cond - P_tank*V_dot_vap + Q_dot_in_vap
     
@@ -295,17 +295,17 @@ def energy_dot_liq_funct(HEOS,
                          threshold = 0.01):
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
-    h_evap = HEOS.hmass
+    h_evap = HEOS.hmass()
     
     HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
-    h_cond = HEOS.hmass
+    h_cond = HEOS.hmass()
     
     if V_liq < threshold*V_liq:
         HEOS.update(CP.PT_INPUTS, P_tank, T_vap)
-        h_out = HEOS.hmass
+        h_out = HEOS.hmass()
     else:
         HEOS.update(CP.PT_INPUTS, P_tank, T_liq)
-        h_out = HEOS.hmass
+        h_out = HEOS.hmass()
     
     U_dot_liq = - m_dot_out*h_out - m_dot_evap*h_evap + m_dot_cond*h_cond - P_tank*V_dot_liq + Q_dot_in_liq
     
