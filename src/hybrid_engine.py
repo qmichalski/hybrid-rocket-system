@@ -240,7 +240,7 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 50
+tf = 8
 t_eval = np.linspace(0,tf,1000)
 
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
