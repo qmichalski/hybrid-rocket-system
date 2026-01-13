@@ -215,6 +215,7 @@ def volume_dot_vap_funct (HEOS,
 # %% Function for rate of change of liquid volume
 def volume_dot_liq_funct(V_dot_vap):
     return -V_dot_vap
+
 # %% Function for rate of change of fluid phase temperature
 def temperature_dot_funct (HEOS, 
                            m_phase, 

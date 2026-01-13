@@ -9,11 +9,13 @@ import math
 import cantera as ct
 import numpy as np
 import Non_Equilibrium_Tank_Model_ZK as ZK
+from scipy.integrate import solve_ivp
 
+# %% Tank Model - System of ODEs
 def tank_model_funct(t,z, # Main Variables
                      HEOS, threshold, E, CS_tank, c_dict, n_dict, L, A, g, universal_gas_constant): # Args
 
-# %%Unpacking initial data
+# Unpacking initial data____________________________________________________________________________________________________
     pressure_tank = z[0]
     temperature_VAP = z[1]
     temperature_LIQ = z[2]
@@ -29,12 +31,12 @@ def tank_model_funct(t,z, # Main Variables
     #i_energy_VAP = z[12]
     #i_energy_LIQ = z[13]
     
-# %%Intermediate parameters
+# Intermediate parameters___________________________________________________________________________________________________
     dmass_OUT = 0
-    HEOS.update(CP.PQ_INPUTS, P_tank, 0)
+    HEOS.update(CP.PQ_INPUTS, pressure_tank, 0)
     temperature_surf = HEOS.T
     
-# %%Mass transfer rate for evaporation and condensation
+# Mass transfer rate for evaporation and condensation_______________________________________________________________________
     dheat_in_liq = ZK.Heat_dot_funct (HEOS, 
                                       c_dict["liquid N2O"], 
                                       n_dict["liquid N2O"], 
@@ -43,7 +45,7 @@ def tank_model_funct(t,z, # Main Variables
                                       g, 
                                       temperature_LIQ, 
                                       temperature_surf, 
-                                      CS)*E
+                                      CS_tank)*E
     
     dheat_in_vap = ZK.Heat_dot_funct (HEOS, 
                                       c_dict["vapour N2O"], 
@@ -53,9 +55,9 @@ def tank_model_funct(t,z, # Main Variables
                                       g, 
                                       temperature_VAP, 
                                       temperature_surf, 
-                                      CS)
+                                      CS_tank)
 
-# %%Mass transfer rate for evaporation and condensation
+# Mass transfer rate for evaporation and condensation_______________________________________________________________________
 
     dmass_EVAP = ZK.mass_dot_evap_funct (HEOS, 
                              c_dict, 
@@ -81,14 +83,14 @@ def tank_model_funct(t,z, # Main Variables
                              R_universal = universal_gas_constant,
                              delta_t = time_step)
 
-# %%Mass transfer rate between the liquid and vapor phases
+# Mass transfer rate between the liquid and vapor phases____________________________________________________________________
     dmass_VAP = ZK.mass_dot_VAP_funct (dmass_EVAP, 
                                        dmass_COND, 
                                        dmass_OUT)
     dmass_LIQ = ZK.mass_dot_LIQ_funct (dmass_EVAP, 
                                        dmass_COND)
 
-# %%Volume change rate for liquid and vapour phases
+# Volume change rate for liquid and vapour phases___________________________________________________________________________
     dvolume_VAP = ZK.volume_dot_vap_funct (HEOS, 
                                          pressure_tank, 
                                          mass_VAP, 
@@ -107,7 +109,7 @@ def tank_model_funct(t,z, # Main Variables
     
     dvolume_LIQ = ZK.volume_dot_liq_funct (dvolume_VAP)
     
-# %%Density change rate for liquid and vapour phases
+# Density change rate for liquid and vapour phases__________________________________________________________________________
     drho_VAP = ZK.density_dot_funct(HEOS, 
                                     mass_VAP, 
                                     dmass_VAP, 
@@ -120,7 +122,7 @@ def tank_model_funct(t,z, # Main Variables
                                     volume_LIQ, 
                                     dvolume_LIQ)
 
-# %%Energy transfer rate between the liquid and vapour phases    
+# Energy transfer rate between the liquid and vapour phases_________________________________________________________________
     denergy_VAP = ZK.energy_dot_vap_funct (HEOS, 
                                            pressure_tank, 
                                            temperature_VAP, 
@@ -140,7 +142,7 @@ def tank_model_funct(t,z, # Main Variables
                                            dvolume_LIQ, 
                                            threshold = 0.01)
     
-# %%Temperature change rate for the liquid and vapor phases
+# Temperature change rate for the liquid and vapor phases___________________________________________________________________
     dtemperature_VAP = ZK.temperature_dot_funct (HEOS, 
                                                  mass_VAP, 
                                                  dmass_VAP,
@@ -157,7 +159,7 @@ def tank_model_funct(t,z, # Main Variables
                                                  temperature_LIQ, 
                                                  denergy_LIQ)
 
-# %%Outputting combined system of ODE
+# Outputting combined system of ODE_________________________________________________________________________________________
     dZdt = np.zeros(12)
     dZdt[0] = dmass_LIQ
     dZdt[1] = dmass_VAP
@@ -187,9 +189,9 @@ universal_gas_constant = 8.314
 # Tank Geometry
 L_tank = 1
 R_tank = 1
-CS = math.pi*(R_tank**2)
+CS_tank = math.pi*(R_tank**2)
 
-V_tank = L_tank*CS
+V_tank = L_tank*CS_tank
 
 # Initial tank data
 fill_percentage = 90/100
@@ -199,7 +201,7 @@ L_liq = L_tank*(fill_percentage)
 # Initial Tank conditions
 T_vap = 298.15
 T_liq = 298.15
-P_tank = 56*ct.one_atm
+P_tank_initial = 56*ct.one_atm
 
 
 # Heat Transfer Constants
@@ -214,3 +216,33 @@ n_dict = {
 
 # Solver Inputs
 time_step = 0.01
+
+m_vap = 1
+m_liq = 1
+V_vap = L_vap*CS_tank
+V_liq = L_liq*CS_tank
+
+threshold = 0.01
+E = 693
+
+# %% Solving System of ODE
+ti = 0
+tf = 5
+step_number = 100
+time_step = tf/step_number
+t_eval = np.linspace(ti,tf,step_number)
+y0 = np.zeros(7)
+y0[0] = P_tank_initial
+y0[1] = T_vap
+y0[2] = T_liq
+y0[3] = m_vap
+y0[4] = m_liq
+y0[5] = V_vap
+y0[6] = V_liq
+
+
+sol = solve_ivp(tank_model_funct,[0,tf],y0,
+                method='LSODA',
+                t_eval=t_eval, 
+                args=(HEOS, threshold, E, CS_tank, c_dict, n_dict, L_tank, CS_tank, g, universal_gas_constant),
+                max_step=0.01)
