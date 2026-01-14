@@ -10,6 +10,7 @@ import cantera as ct
 import numpy as np
 import Non_Equilibrium_Tank_Model_ZK as ZK
 from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
 
 # %% Tank Model - System of ODEs
 def tank_model_funct(t,z, # Main Variables
@@ -248,3 +249,70 @@ sol = solve_ivp(tank_model_funct,[0,tf],y0,
                 t_eval=t_eval, 
                 args=(HEOS, threshold, E, CS_tank, c_dict, n_dict, L_tank, CS_tank, g, universal_gas_constant),
                 max_step=0.01)
+
+# %% Plots
+
+
+plt.plot(sol['t'],sol['y'][0])
+plt.xlabel('Time, s')
+plt.ylabel('Liquid Mass, Kg')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][1])
+plt.xlabel('Time, s')
+plt.ylabel('Vapour Mass, Kg')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][2])
+plt.xlabel('Time, s')
+plt.ylabel('Condensation Mass, Kg')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][3])
+plt.xlabel('Time, s')
+plt.ylabel('Evaporation Mass, Kg')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][4])
+plt.xlabel('Time, s')
+plt.ylabel('Exit Mass, Kg')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][5])
+plt.xlabel('Time, s')
+plt.ylabel('Liquid Temperature, m^3')
+
+plt.plot(sol['t'],sol['y'][6])
+plt.xlabel('Time, s')
+plt.ylabel('Vapour Temperature, m^3')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][7])
+plt.xlabel('Time, s')
+plt.ylabel('Liquid Energy, J')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][8])
+plt.xlabel('Time, s')
+plt.ylabel('Vapour Energy, J')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][9])
+plt.xlabel('Time, s')
+plt.ylabel('Liquid Density, Kg/m^3')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][10])
+plt.xlabel('Time, s')
+plt.ylabel('Vapour Density, Kg/m^3')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][11])
+plt.xlabel('Time, s')
+plt.ylabel('Liquid Volumme, m^3')
+plt.show()
+
+plt.plot(sol['t'],sol['y'][12])
+plt.xlabel('Time, s')
+plt.ylabel('Vapour Volume, m^3')
+plt.show()
