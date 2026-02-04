@@ -13,6 +13,7 @@ import CoolProp.CoolProp as CP
 import libCombRegRate
 import libMassFlux
 import grain_geometry_lib
+import Nozzle_Model as NM
 
 # MAIN CHAMBER FUNCTION_________________________________________________________________________________________
 def combustionDifferentialSystemWithOxidizerTank(t,z,
@@ -299,15 +300,18 @@ for i,t in enumerate(sol['t']):
         mdottotf.append(mdot_oxidizer/mdot_fuel)
     else:
         mdottotf.append(0)
-    thrust.append(rho_throat*throat_area*v_throat**2)
-    T_exit = Tc/ (1 + (gamma-1)*(M_design**2)/2)
-    a_exit = math.sqrt(gamma*R*T_exit)
-    V_exit = M_design*a_exit
-    m_dot_exit = rho_throat*throat_area*v_throat
-    
-    P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
-    if m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit > 0:
-        thrust[i] = m_dot_exit*V_exit + (P_exit - ambiant_pressure)*Area_exit
+    try:
+        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_solver(17.5/1000, 9.43/1000, pc, ct.one_atm, Tc, z[4:])
+    except:
+        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = 0,0,0,0,0,0,0,0
+    thrust.append(thrust_nozzle)
+    #T_exit = Tc/ (1 + (gamma-1)*(M_design**2)/2)
+    #a_exit = math.sqrt(gamma*R*T_exit)
+    #V_exit = M_design*a_exit
+    #m_dot_exit = rho_throat*throat_area*v_throat
+    #P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
+    if thrust_nozzle > 0:
+        thrust[i] = thrust_nozzle
     else:
         if stop < 2:
             thrust_finish = i
