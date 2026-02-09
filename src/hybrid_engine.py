@@ -163,13 +163,13 @@ gas = ct.Solution('gri30_highT.yaml')
 
 #input parameters for grain ignore parameters not used in type of grain in m ___________________________________
 
-chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+chamber_outer_radius = 36/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
-numberofarms = 6 #only used for grains with radial features
-grain_length = 358/1000
-graincentreradius = 10/1000
-armheight = 8/1000 #only used for grains with radial features
-armwidth = 4.229/1000 #only used for grains with radial features
+numberofarms = 8 #only used for grains with radial features
+grain_length = 369/1000 #358/1000
+graincentreradius = 20/1000# cots configuration
+armheight = -2/1000 #only used for grains with radial features
+armwidth = 2/1000 #4.229/1000 #only used for grains with radial features
 
 # NOZZLE DATA___________________________________________________________________________________________________
 
@@ -241,7 +241,7 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 8
+tf = 50
 t_eval = np.linspace(0,tf,1000)
 
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
