@@ -513,7 +513,7 @@ def tank_model_funct(t,z, # Main Variables
                                            pressure_tank, 
                                            dmass_EVAP, 
                                            dmass_COND, 
-                                           dheat_surf_to_vap, 
+                                           dheat_surf_to_vap + dheat_liq_to_surf, 
                                            dvolume_VAP
                                            )
 
@@ -523,7 +523,7 @@ def tank_model_funct(t,z, # Main Variables
                                            dmass_EVAP, 
                                            dmass_COND, 
                                            dmass_OUT, 
-                                           -dheat_liq_to_surf,  
+                                           -dheat_surf_to_vap-dheat_liq_to_surf,  
                                            dvolume_LIQ, 
                                            )
     #plt.plot(t,pressure_tank/ct.one_atm,'*')
@@ -531,14 +531,14 @@ def tank_model_funct(t,z, # Main Variables
     #plt.plot(t,temperature_VAP,'.', color = 'blue')
     #plt.plot(t,dmass_EVAP,'.',color = 'black')
     #plt.plot(t,dmass_COND,'.',color = 'red')
-    #plt.plot(t,dvolume_VAP,'.',color = 'black')
-    #plt.plot(t,dvolume_LIQ,'.',color = 'red')
+    plt.plot(t,dvolume_VAP,'.',color = 'black')
+    plt.plot(t,dvolume_LIQ,'.',color = 'red')
     #plt.plot(t,dvolume_VAP+dvolume_LIQ,'.',color = 'green')
     #plt.plot(t,dheat_liq_to_surf,'.',color = 'black')
     #plt.plot(t,dheat_surf_to_vap,'.',color = 'red')
-    plt.plot(t,mass_VAP,'.',color = 'black')
-    plt.plot(t,mass_LIQ,'.',color = 'red')
-    plt.yscale('log')
+    #plt.plot(t,mass_VAP,'.',color = 'black')
+    #plt.plot(t,mass_LIQ,'.',color = 'red')
+    #plt.yscale('log')
     #plt.plot(t,M_tot - (dmass_OUT*time_step + mass_VAP + mass_LIQ),'.',color = 'green')
     plt.grid()
     print(M_tot,'Kg')

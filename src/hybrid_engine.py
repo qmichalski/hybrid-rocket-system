@@ -301,7 +301,7 @@ for i,t in enumerate(sol['t']):
     else:
         mdottotf.append(0)
     try:
-        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_solver(17.5/1000, 9.43/1000, pc, ct.one_atm, Tc, z[4:])
+        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", 17.5/1000, 9.43/1000)
     except:
         thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = 0,0,0,0,0,0,0,0
     thrust.append(thrust_nozzle)
