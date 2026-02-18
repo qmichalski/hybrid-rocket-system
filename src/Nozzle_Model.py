@@ -195,7 +195,7 @@ def nozzle_sol_funct(P_ambient, P_estimate, P_chamber, T_chamber, propellent, R_
         T_exit = gas.T
         a_exit = gas.sound_speed
         #rho_exit = gas.density_mass
-        thrust_nozzle = m_dot_exit*v_exit_NC, T_exit
+        thrust_nozzle = m_dot_exit*v_exit_NC #, T_exit 
         
         print(m_dot_exit*v_exit_NC, T_exit, v_exit_NC)
     
