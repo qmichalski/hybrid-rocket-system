@@ -176,10 +176,10 @@ def nozzle_sol_funct(P_ambient, P_estimate, P_chamber, T_chamber, propellent, R_
             break
     P_throat = P_choking
     if P_choking>P_ambient:
-        print ("Throat will choke and the pressure in the throat is ",P_choking/ct.one_atm," Atm")
-        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = nozzle_solver(17.5/1000, 9.43/1000, P_chamber, ct.one_atm, T_chamber, "CO2:17.03, H2O:9.45, N2:0.5")
+        #print ("Throat will choke and the pressure in the throat is ",P_choking/ct.one_atm," Atm")
+        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = nozzle_solver(R_exit, R_throat, P_chamber, ct.one_atm, T_chamber, "CO2:17.03, H2O:9.45, N2:0.5")
     else:
-        print ("Throat will NOT choke and the pressure in the throat is ",P_choking/ct.one_atm," Atm")
+        #print ("Throat will NOT choke and the pressure in the throat is ",P_choking/ct.one_atm," Atm")
         # Finding flow properties when NOT choked
         gas.SP = s_chamber, P_ambient
         h_exit_NC = gas.enthalpy_mass
@@ -197,7 +197,7 @@ def nozzle_sol_funct(P_ambient, P_estimate, P_chamber, T_chamber, propellent, R_
         #rho_exit = gas.density_mass
         thrust_nozzle = m_dot_exit*v_exit_NC, T_exit
         
-        print(m_dot_exit*v_exit_NC, T_exit, v_exit_NC)
+        #print(m_dot_exit*v_exit_NC, T_exit, v_exit_NC)
     
     return  thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit
 

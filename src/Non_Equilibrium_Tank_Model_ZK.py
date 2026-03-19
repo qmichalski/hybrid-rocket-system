@@ -79,14 +79,20 @@ def mass_dot_evap_funct (HEOS_sat_vap,
                          HEOS_liq,
                          Q_dot_liq_TO_surf,
                          Q_dot_surf_TO_vap,
+                         Area,
+                         HEOS_vap
                          ):
     
     h_sat_vap = HEOS_sat_vap.hmass()
     h_sat_liq = HEOS_sat_liq.hmass()
     h_vaporization = h_sat_liq - h_sat_vap
-    h_liq = HEOS_liq.hmass()
-    m_dot_evap = (Q_dot_liq_TO_surf - Q_dot_surf_TO_vap)/ (h_vaporization + h_sat_liq - h_liq)
-    
+    T_sat_liq = HEOS_sat_liq.T()
+    T_liq = HEOS_liq.T()
+    #h_liq = HEOS_liq.hmass()
+    h_LSB = 2*10*HEOS_liq.hmass()
+    m_dot_evap = h_LSB*(Area/h_vaporization)*(T_liq - T_sat_liq)
+    #m_dot_evap = abs((Q_dot_liq_TO_surf - Q_dot_surf_TO_vap)/ (h_vaporization + h_sat_liq - h_liq))
+
     return m_dot_evap
 
 # %% Mass flow rate due to condensation function
@@ -104,7 +110,7 @@ def mass_dot_cond_funct (HEOS,
     P_sat_vap = HEOS.p()
 
     if P_tank>P_sat_vap:
-        m_dot_cond = (P_tank - P_sat_vap) * V_vap * Molar_mass/ (Z * R_universal * T_V * delta_t)
+        m_dot_cond = (P_tank - P_sat_vap) * V_vap * Molar_mass/ (Z * R_universal * T_V * delta_t*100)
     else:
         m_dot_cond = 0
     
@@ -418,13 +424,13 @@ def tank_model_funct(t,z, # Main Variables
     pressure_tank = (HEOS_LIQ.p() + HEOS_VAP.p())/2
     print(' | Tank P = ', round(pressure_tank/ct.one_atm,2))
     
-    HEOS_S_VAP.update(CP.PQ_INPUTS, pressure_tank, 0)
-    HEOS_S_LIQ.update(CP.PQ_INPUTS, pressure_tank, 1)
+    HEOS_S_VAP.update(CP.PQ_INPUTS, pressure_tank, 1)
+    HEOS_S_LIQ.update(CP.PQ_INPUTS, pressure_tank, 0)
 
     temperature_VAP = HEOS_VAP.T() 
     temperature_LIQ = HEOS_LIQ.T()
     temperature_SURF = HEOS_S_LIQ.T()
-    print(' | T_V = ',round(temperature_VAP,2),'| T_V = ',round(temperature_LIQ,2),'| T_V = ',round(temperature_SURF,2) )
+    print(' | T_V = ',round(temperature_VAP,2),'| T_L = ',round(temperature_LIQ,2),'| T_SURF = ',round(temperature_SURF,2) )
     
     volume_VAP = mass_VAP/density_VAP
     volume_LIQ = mass_LIQ/density_LIQ
@@ -471,6 +477,8 @@ def tank_model_funct(t,z, # Main Variables
                              HEOS_LIQ,
                              dheat_liq_to_surf,
                              dheat_surf_to_vap,
+                             CS_tank,
+                             HEOS_VAP
                              )
     
     dmass_COND = mass_dot_cond_funct (HEOS,
@@ -513,7 +521,7 @@ def tank_model_funct(t,z, # Main Variables
                                            pressure_tank, 
                                            dmass_EVAP, 
                                            dmass_COND, 
-                                           dheat_surf_to_vap + dheat_liq_to_surf, 
+                                           dheat_surf_to_vap, 
                                            dvolume_VAP
                                            )
 
@@ -523,21 +531,23 @@ def tank_model_funct(t,z, # Main Variables
                                            dmass_EVAP, 
                                            dmass_COND, 
                                            dmass_OUT, 
-                                           -dheat_surf_to_vap-dheat_liq_to_surf,  
+                                           -dheat_liq_to_surf,  
                                            dvolume_LIQ, 
                                            )
-    #plt.plot(t,pressure_tank/ct.one_atm,'*')
+    plt.plot(t,pressure_tank/ct.one_atm,'*')
     #plt.plot(t,temperature_LIQ,'.',color = 'black')
     #plt.plot(t,temperature_VAP,'.', color = 'blue')
     #plt.plot(t,dmass_EVAP,'.',color = 'black')
     #plt.plot(t,dmass_COND,'.',color = 'red')
-    plt.plot(t,dvolume_VAP,'.',color = 'black')
-    plt.plot(t,dvolume_LIQ,'.',color = 'red')
+    #plt.plot(t,dvolume_VAP,'.',color = 'black')
+    #plt.plot(t,dvolume_LIQ,'.',color = 'red')
     #plt.plot(t,dvolume_VAP+dvolume_LIQ,'.',color = 'green')
     #plt.plot(t,dheat_liq_to_surf,'.',color = 'black')
     #plt.plot(t,dheat_surf_to_vap,'.',color = 'red')
     #plt.plot(t,mass_VAP,'.',color = 'black')
     #plt.plot(t,mass_LIQ,'.',color = 'red')
+    #plt.plot(t,L_VAP_SURF,'.',color = 'black')
+    #plt.plot(t,L_LIQ_SURF,'.',color = 'red')
     #plt.yscale('log')
     #plt.plot(t,M_tot - (dmass_OUT*time_step + mass_VAP + mass_LIQ),'.',color = 'green')
     plt.grid()

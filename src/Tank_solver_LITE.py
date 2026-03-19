@@ -68,7 +68,7 @@ k_liq = 0.15
 # Solver Inputs
 time_step = 0.01
 threshold = 0.01
-E = 693
+E = 683
 
 # Injector and outflow data
 Cd = 0.55
@@ -81,7 +81,7 @@ M_tot = m_liq + m_vap
 # %% SOLVER INITIALIZATION
 
 ti = 0
-tf = 5
+tf = 10
 step_number = 1000
 time_step = tf/step_number
 t_eval = np.linspace(ti,tf,step_number)

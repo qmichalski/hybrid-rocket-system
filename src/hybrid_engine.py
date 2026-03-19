@@ -61,6 +61,18 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     h_oxidizer = gas.enthalpy_mass
     gas.TPY = 300,1e5,Y_fuel
     h_fuel = gas.enthalpy_mass
+    
+
+    # Getting hot gas properties
+    mu = gas.viscosity
+    print(f"Dynamic Viscosity: {mu:.4e} Pa*s")
+    
+    # Pr = mu * Cp / lambda
+    cp = gas.cp_mass  # Specific heat at constant pressure
+    lambda_val = gas.thermal_conductivity
+    Pr = mu * cp / lambda_val
+    print(f"Prandtl Number: {cp} ")
+
     print('t:{:4.2f}s|pc:{:4.2f} bar|Tc:{:4.0f}K|mdoto:{:1.3f}|r/rmax:{:03.0f}'.format(t,pc/1e5,Tc,mdot_oxidizer,combustion_radius/combustion_final_radius*100))
     if combustion_radius < combustion_final_radius-quench_radius and mdot_oxidizer > 0: # grain run out controller
         area_combustion = Swr_fun(combustion_radius)
@@ -99,7 +111,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
         po = HEOS.p()
         xo = HEOS.Q()
         return(pc,Tc,uc,rhoc,Yc,rho_throat, v_throat, p_throat,
-               po,To,xo,rhoo,mdot_oxidizer,mdot_fuel,gamma,R)
+               po,To,xo,rhoo,mdot_oxidizer,mdot_fuel,gamma,R,Pr,mu)
     else:
         return(dzdt)
 
@@ -176,7 +188,7 @@ armwidth = 4.229/1000 #only used for grains with radial features
 M_design = 2.56
 Area_exit = math.pi * 17.51 ** 2 / 10**6
 throat_area = math.pi * 9.43 ** 2 / 10**6
-
+Area_throat = throat_area
 """
 M_design = 2.79
 Area_exit = math.pi * 19.00 ** 2 / 10**6
@@ -257,17 +269,21 @@ sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
                 gas,HEOS),
                 max_step=0.01)
 
-# EXTRACTING DATA_______________________________________________________________________________________________
+# %%EXTRACTING DATA_______________________________________________________________________________________________
 pcs = []
 Tcs = []
 pos = []
 Tos = []
 xos = []
 mdoto = []
+mdot_total = []
 mdotf = []
 thrust = []
 TVA = [] # time varience authority
+MU = []
+PR = []
 mdottotf = []
+C_STAR = []
 stop = 0
 thrust_sum = 0
 mass_flow_rate_sum = 0
@@ -280,7 +296,7 @@ for i,t in enumerate(sol['t']):
     z[2] = sol['y'][2,i]
     z[3] = sol['y'][3,i]
     z[4:] = sol['y'][4:,i] 
-    pc,Tc,uc,rhoc,Yc,rho_throat, v_throat, p_throat,po,To,xo,rhoo,mdot_oxidizer,mdot_fuel,gamma,R = combustionDifferentialSystemWithOxidizerTank(t,z,
+    pc,Tc,uc,rhoc,Yc,rho_throat, v_throat, p_throat,po,To,xo,rhoo,mdot_oxidizer,mdot_fuel,gamma,R, Pr_val, mu_val = combustionDifferentialSystemWithOxidizerTank(t,z,
                                                                                                              section_nozzle,
                                                                                                              ambiant_pressure,
                                                                                                              volume_oxidizer,
@@ -294,14 +310,21 @@ for i,t in enumerate(sol['t']):
     pos.append(po/1e3)
     Tos.append(To)
     xos.append(xo)
+    MU.append(mu_val)
+    PR.append(Pr_val)
     mdoto.append(mdot_oxidizer*1e3)
     mdotf.append(mdot_fuel*1e3)
+    mdot_total.append(mdot_oxidizer+mdot_fuel)
+    
+    c_star = Area_throat*pc/(mdot_oxidizer+mdot_fuel)
+    C_STAR.append(c_star)
+    
     if mdot_fuel > 0:
         mdottotf.append(mdot_oxidizer/mdot_fuel)
     else:
         mdottotf.append(0)
     try:
-        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", 17.5/1000, 9.43/1000)
+        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", 9.43/1000, 17.5/1000)
     except:
         thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = 0,0,0,0,0,0,0,0
     thrust.append(thrust_nozzle)
@@ -330,7 +353,7 @@ for i,t in enumerate(sol['t']):
 fuel_mass = rho_abs*(Pr_fun(combustion_final_radius)-Pr_fun(sol['y'][0]))*grain_length
 
 
-# PLOTTING______________________________________________________________________________________________________
+# %%PLOTTING______________________________________________________________________________________________________
 inchToMM = 25.4
 combustionAndFlameMax = 88 # mm
 plt.rcParams["font.family"] = 'Times New Roman'
@@ -376,6 +399,12 @@ plt.ylim([0,max(thrust)+100])
 plt.plot(TVA,thrust,color = 'red')
 plt.xlabel('Time, s')
 plt.ylabel('Thrust, N')
+plt.show()
+
+
+plt.plot(TVA, C_STAR,color = 'Blue')
+plt.xlabel('Time, s')
+plt.ylabel('Characteristic Velocity, m/s')
 plt.show()
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
