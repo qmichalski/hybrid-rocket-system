@@ -177,12 +177,11 @@ gas = ct.Solution('gri30_highT.yaml')
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
 typeofgrain = 'Addapted Finocyl'
-numberofarms = 8 #only used for grains with radial features
+numberofarms = 6 #only used for grains with radial features
 grain_length = 358/1000
 graincentreradius = 10/1000
-armheight = 6/1000 #only used for grains with radial features
-armwidth = 2/1000 #only used for grains with radial features
-
+armheight = 8/1000 #only used for grains with radial features
+armwidth = 4.229/1000 #only used for grains with radial features
 # NOZZLE DATA___________________________________________________________________________________________________
 
 M_design = 2.56
@@ -253,7 +252,7 @@ y0[2] = Uc0
 y0[3] = mo0
 y0[4] = Uo0
 y0[5:] = mYc0
-tf = 20 #this cannot be less then the run time. Set it to 20 it will self terminate at the oxidiser run out condition.
+tf = 8 #this cannot be less then the run time. Set it to 20 it will self terminate at the oxidiser run out condition.
 t_eval = np.linspace(0,tf,1000)
 
 sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
@@ -336,12 +335,12 @@ for i,t in enumerate(sol['t']):
     if thrust_nozzle > 0:
         thrust[i] = thrust_nozzle
     else:
-        if stop <= 1 :
+        if stop < 2:
             thrust_finish = i
             thrust_time = t
             stop =stop + 1
         thrust[i] = 0
-    thrust_sum = thrust_sum + thrust[i]
+    thrust_sum = thrust_sum +thrust[i]
     mass_flow_rate_sum = mass_flow_rate_sum + m_dot_exit
     TVA.append(t)
     # except:
