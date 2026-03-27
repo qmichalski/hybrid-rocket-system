@@ -183,7 +183,7 @@ def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwid
    else:
        armtrack = 0
        run = 0
-       #sin and cos can be inverted to rotate grain
+       #sin and cos can be inverted to rotate grain start point
        while armtrack < numberofarms:
            armtrack = armtrack + 1
            thea = (armtrack - 1) * angle_between_arms
@@ -333,8 +333,8 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
    circumference_bore = graincentreradiusupdate*2*math.pi
    circumference_arc = arclength*numberofarms
 
-   x = []
-   y = []
+   xinital = []
+   yinital = []
    x1 = []
    y1 = []
    radiuscurve = []
@@ -367,7 +367,7 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                startheight = armheightupdate+graincentreradiusupdate-offsetstart
                xstart = math.cos(thea)*(startheight)
                ystart = math.sin(thea)*(startheight)
-               x.append(xstart), y.append(ystart)
+               xinital.append(xstart), yinital.append(ystart)
               
                thea = ((armtrack - 1) * angle_between_arms) + math.pi/2
                startlength  = ((armwidthupdate)/2)-burn_fillet
@@ -378,9 +378,9 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                startarmx = numpy.linspace(xstart,xendpoint,100)
                startarmy = numpy.linspace(ystart,yendpoint,100) #breaks the arm into 100 points
                for xpoint in startarmx:
-                   x.append(xpoint) 
+                   xinital.append(xpoint) 
                for ypoint in startarmy:
-                   y.append(ypoint)
+                   yinital.append(ypoint)
                xcurrent = xpoint
                ycurrent = ypoint
                ypoint2 =ypoint - armwidthupdate+burn_fillet*2
@@ -416,8 +416,8 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                        thea2 = theacurve[i] + angle_update
                        xcurrent = math.cos(thea2)*radiuscurve[i]
                        ycurrent = math.sin(thea2)*radiuscurve[i]
-                       x.append(xcurrent)
-                       y.append(ycurrent)
+                       xinital.append(xcurrent)
+                       yinital.append(ycurrent)
                #drop for arm        
                thea1 = (angle/2) 
                thea = (armtrack - 1) * angle_between_arms
@@ -429,9 +429,9 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                startarmx = numpy.linspace(xcurrent,xendpoint,100)
                startarmy = numpy.linspace(ycurrent,yendpoint,100)
                for xpoint in startarmx:
-                   x.append(xpoint) 
+                   xinital.append(xpoint) 
                for ypoint in startarmy:
-                   y.append(ypoint)
+                   yinital.append(ypoint)
                xcurrent = xpoint
                ycurrent = ypoint
                
@@ -442,7 +442,7 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                for thea in curvethea:
                    xcurrent = math.cos(thea)*graincentreradiusupdate
                    ycurrent = math.sin(thea)*graincentreradiusupdate
-                   x.append(xcurrent), y.append(ycurrent)
+                   xinital.append(xcurrent), yinital.append(ycurrent)
                #angled second arm
                
                thea = ((armtrack) * angle_between_arms) 
@@ -454,10 +454,10 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                startarmx = numpy.linspace(xcurrent,xendpoint,100)
                startarmy = numpy.linspace(ycurrent,yendpoint,100)
                for xpoint in startarmx:
-                   x.append(xpoint) 
+                   xinital.append(xpoint) 
            
                for ypoint in startarmy:
-                   y.append(ypoint)
+                   yinital.append(ypoint)
                xcurrent = xpoint
                ycurrent = ypoint  
                if burn_fillet > 0:
@@ -466,8 +466,8 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                        thea2 = theacurve2[i] + angle_update
                        xcurrent = math.cos(thea2)*radiuscurve2[i]
                        ycurrent = math.sin(thea2)*radiuscurve2[i]
-                       x.append(xcurrent)
-                       y.append(ycurrent)
+                       xinital.append(xcurrent)
+                       yinital.append(ycurrent)
                
                thea1 = (angle/2)
                thea = ((armtrack) * angle_between_arms)+ math.pi/2
@@ -479,16 +479,18 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                startarmx = numpy.linspace(xcurrent,xendpoint,100)
                startarmy = numpy.linspace(ycurrent,yendpoint,100) #breaks the arm into 100 points
                for xpoint in startarmx:
-                   x.append(xpoint) 
+                   xinital.append(xpoint) 
                for ypoint in startarmy:
-                   y.append(ypoint)
+                   yinital.append(ypoint)
                    # angle_current_arm = 
                   # xpoint = math.sin(angle_between_arms)*armheightupdate
                   # ypoint = math.cos(angle_between_arms)*armheightupdate
                   # gradient = ypoint/xpoint
                   # curvethea = numpy.linspace(thea1,thea2,500)
                #armtrack = armtrack+1
-   return x,y,x1,y1
+   return xinital,yinital,x1,y1
+def grain_burn_extrapolation(geometry_scalar,x,y,x1,y1):
+    s
 def grain_geometry_finocyl(geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
     
     graincentreradiusupdate = graincentreradius + geometry_scalar
@@ -548,12 +550,14 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
             #print (grainsurfacearea)
             
             #visulise inputed grain
+            xinital = []
+            yinital = []
             x = []
             y = []
             x1 = []
             y1 = []
             
-            x,y,x1,y1 = graingeometry_finocyl_plotter_inital_shape(grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+            xinital,yinital,x1,y1 = graingeometry_finocyl_plotter_inital_shape(grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
             graph.plot(x,y)
             graph.plot((x),(y))
             graph.xlabel("x (mm)")

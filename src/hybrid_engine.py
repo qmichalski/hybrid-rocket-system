@@ -174,8 +174,8 @@ armwidth = 2/1000 #4.229/1000 #only used for grains with radial features
 # NOZZLE DATA___________________________________________________________________________________________________
 
 M_design = 2.56
-Area_exit = math.pi * 17.51 ** 2 / 10**6
-throat_area = math.pi * 9.43 ** 2 / 10**6
+Area_exit = math.pi * (44.8/2) ** 2 / 10**6
+throat_area = math.pi * (19.81/2) ** 2 / 10**6
 
 """
 M_design = 2.79
@@ -214,7 +214,11 @@ gas.TPX = T0,ambiant_pressure,'O2:0.21,N2:0.79'
 HEOS.update(CP.QT_INPUTS, 0, T0)
 # combustor_length = 150e-3 
 T_abs = T0
-diameter_nozzle = 2*9.43e-3 # m
+diameter_nozzle = 19.81/1000 # m
+radius_nozzle = diameter_nozzle/2
+diameter_exit = 44.8/1000
+radius_exit = diameter_exit/2
+
 section_nozzle = np.pi*(diameter_nozzle/2)**2
 volume_oxidizer = 4.63e-3 # in m^3
 section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
@@ -301,7 +305,7 @@ for i,t in enumerate(sol['t']):
     else:
         mdottotf.append(0)
     try:
-        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", 17.5/1000, 9.43/1000)
+        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", radius_nozzle, radius_exit)
     except:
         thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = 0,0,0,0,0,0,0,0
     thrust.append(thrust_nozzle)

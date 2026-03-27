@@ -19,7 +19,7 @@ def root_finder_funct(start, stop, tolerence, function, alt, m_dot_check, P_cham
         iter_step = 0
         #print (function(initial, alt), function(final, alt))
         while abs(function(initial/2 + final/2, alt, m_dot_check, P_chamber, T_chamber, propellent, R_exit, R_throat))>tolerence:
-            plt.plot(iter_step, function(mid, alt, m_dot_check, P_chamber, T_chamber, propellent, R_exit, R_throat),'.')
+            #plt.plot(iter_step, function(mid, alt, m_dot_check, P_chamber, T_chamber, propellent, R_exit, R_throat),'.')
             iter_step = iter_step+1
             mid = initial/2 +final/2
             
@@ -30,7 +30,7 @@ def root_finder_funct(start, stop, tolerence, function, alt, m_dot_check, P_cham
             else:
                 print("Solution does not lie in the given interval!")
                 break
-        plt.grid()
+        #plt.grid()
         return mid
     else:
         initial = start
@@ -39,7 +39,7 @@ def root_finder_funct(start, stop, tolerence, function, alt, m_dot_check, P_cham
         iter_step = 0
         #print (function(initial, alt), function(final, alt))
         while abs(function(initial/2 + final/2, alt, m_dot_check, P_chamber, T_chamber, propellent, R_exit, R_throat))>tolerence:
-            plt.plot(iter_step, function(mid, alt, m_dot_check, P_chamber, T_chamber, propellent, R_exit, R_throat),'.')
+            #plt.plot(iter_step, function(mid, alt, m_dot_check, P_chamber, T_chamber, propellent, R_exit, R_throat),'.')
             iter_step = iter_step+1
             mid = initial/2 +final/2
             
@@ -50,7 +50,7 @@ def root_finder_funct(start, stop, tolerence, function, alt, m_dot_check, P_cham
             else:
                 print("Solution does not lie in the given interval!")
                 break
-        plt.grid()
+        #plt.grid()
         return mid
 
         
@@ -118,7 +118,7 @@ def root_funct(function, start, stop, tolerence):
     iter_step = 0
     #print (function(initial, alt), function(final, alt))
     while abs(function(initial/2 + final/2))>tolerence:
-        plt.plot(iter_step, function(mid, ),'.')
+        #plt.plot(iter_step, function(mid, ),'.')
         iter_step = iter_step+1
         mid = initial/2 +final/2
         
@@ -129,7 +129,7 @@ def root_funct(function, start, stop, tolerence):
         else:
             print("Solution does not lie in the given interval!")
             break
-    plt.grid()
+    #plt.grid()
     return mid
     return None
 
@@ -159,7 +159,7 @@ def nozzle_sol_funct(P_ambient, P_estimate, P_chamber, T_chamber, propellent, R_
         G_throat_estimate = rho_throat_estimate*v_throat_estimate
         T_throat = gas.T
         
-        plt.plot(P_throat_estimate/ct.one_atm,G_throat_estimate,'.',color = 'blue')
+        #plt.plot(P_throat_estimate/ct.one_atm,G_throat_estimate,'.',color = 'blue')
         
         gas.SP = s_chamber, P_throat_estimate + (P_ambient/100)/1000
         h_throat_estimate = gas.enthalpy_mass
@@ -195,7 +195,7 @@ def nozzle_sol_funct(P_ambient, P_estimate, P_chamber, T_chamber, propellent, R_
         T_exit = gas.T
         a_exit = gas.sound_speed
         #rho_exit = gas.density_mass
-        thrust_nozzle = m_dot_exit*v_exit_NC, T_exit
+        thrust_nozzle = m_dot_exit*v_exit_NC
         
         print(m_dot_exit*v_exit_NC, T_exit, v_exit_NC)
     
