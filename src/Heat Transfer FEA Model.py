@@ -58,6 +58,7 @@ c_metal = 1 # Heat capacity of metal
 f = (0.79*(math.log(Re)) - 1.64)**(-2) # friction coefficient
 Nu = (f/8)*(Re - 1000)*Pr/(1+12.7*((f/8)**(1/2))*(Pr**(2/3) - 1))
 """
+
 Tw = 298 # Wall Temperature
 T_c = 3000 # Chamber Temperature
 P_c = 30*101325 # Chamber Pressure
@@ -72,6 +73,8 @@ sigma = (((Tw*0.5/T_c)*(1 + (gamma-1)/2*M**2) + 0.5)**(0.8 - w/5))*((1 + (gamma-
 T_recovery = T*(1 + r*(gamma - 1)*M*M/2) # Recovery Temperature
 hg = 0.026/(D_throat**0.2)*((visc**0.2)/(Pr**0.6))**0.8*(P_c*g/C_star)*((D_throat/r_throat_curve)**0.2)*sigma
 alpha = k*rho_metal/c_metal
+
+return hg,
 
 
 
