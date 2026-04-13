@@ -65,18 +65,18 @@ P_c = 30*101325 # Chamber Pressure
 g = 9.81 # acceleration due to gravity
 D_throat = 19/1000 # Throat Diameter
 visc = 4.3986/100000 # Viscosity
-w = 0.6 # power for viscosity - temperature relation
-C_star = 0 # Characteristic velocity
+C_star = 1420 # Characteristic velocity
 r_throat_curve = D_throat # Simplification used to make corresponding factor as unity
 
-sigma = (((Tw*0.5/T_c)*(1 + (gamma-1)/2*M**2) + 0.5)**(0.8 - w/5))*((1 + (gamma-1)/2*M**2)**(w/5))
-T_recovery = T*(1 + r*(gamma - 1)*M*M/2) # Recovery Temperature
-hg = 0.026/(D_throat**0.2)*((visc**0.2)/(Pr**0.6))**0.8*(P_c*g/C_star)*((D_throat/r_throat_curve)**0.2)*sigma
+def heat_transfer_ccoeff_calc(Tw, T_c, P_c, D_throat, visc, C_star, r_throat_curve):
+    g = 9.81 # acceleration due to gravity
+    w = 0.6 # power for viscosity - temperature relation
+    sigma = (((Tw*0.5/T_c)*(1 + (gamma-1)/2*M**2) + 0.5)**(0.8 - w/5))*((1 + (gamma-1)/2*M**2)**(w/5))
+    hg = 0.026/(D_throat**0.2)*((visc**0.2)/(Pr**0.6))**0.8*(P_c*g/C_star)*((D_throat/r_throat_curve)**0.2)*sigma
+    return hg
+
 alpha = k*rho_metal/c_metal
-
-return hg,
-
+T_recovery = T*(1 + r*(gamma - 1)*M*M/2) # Recovery Temperature
 
 
-
-print(hg)
+print(heat_transfer_ccoeff_calc(Tw, T_c, P_c, D_throat, visc, C_star, r_throat_curve))

@@ -4,6 +4,7 @@ Created on Mon Jan 26 21:08:46 2026
 
 @author: arun2
 """
+
 import math
 import cantera as ct
 import matplotlib.pyplot as plt
@@ -52,7 +53,6 @@ def root_finder_funct(start, stop, tolerence, function, alt, m_dot_check, P_cham
                 break
         plt.grid()
         return mid
-
         
 
 def nozzle_funct(P_estimate, alt_output = False, m_dot_check = 0, P_chamber = 30*ct.one_atm, T_chamber = 3000, propellent = 'O2:21,N2:78', R_e = 17.5/1000, R_t = 9.43/1000):
@@ -201,4 +201,4 @@ def nozzle_sol_funct(P_ambient, P_estimate, P_chamber, T_chamber, propellent, R_
     
     return  thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit
 
-nozzle_sol_funct(1*ct.one_atm, 100, 4*ct.one_atm, 298, "N2:1", 9.43/1000, 17.5/1000)
+nozzle_sol_funct(1*ct.one_atm, 100, 1.3*ct.one_atm, 298, "N2:1", 9.43/1000, 17.5/1000)
