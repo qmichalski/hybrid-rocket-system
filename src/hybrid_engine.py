@@ -12,7 +12,12 @@ import CoolProp.CoolProp as CP
 import libCombRegRate
 import libMassFlux
 import grain_geometry_lib
+<<<<<<< Updated upstream
 
+=======
+import Nozzle_Model as NM #please do not abriviate definitions
+from mpl_toolkits import mplot3d
+>>>>>>> Stashed changes
 
 # MAIN CHAMBER FUNCTION_________________________________________________________________________________________
 def combustionDifferentialSystemWithOxidizerTank(t,z,
@@ -171,6 +176,10 @@ grain_length = 3580/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 # FUEL DATA_____________________________________________________________________________________________________
 
@@ -202,8 +211,12 @@ HEOS.update(CP.QT_INPUTS, 0, T0)
 # combustor_length = 150e-3 
 T_abs = T0
 diameter_nozzle = 2*9.43e-3 # m
+<<<<<<< Updated upstream
 section_nozzle = np.pi*(diameter_nozzle/2)**2
 volume_oxidizer = 4.63e-3
+=======
+volume_oxidizer = 4.63e-3 # in m^3
+>>>>>>> Stashed changes
 section_injector = 18.85e-6 #np.pi*(10e-3/2)**2
 rho_abs = 1080 # kg/m3
 cp_abs = 1500 # J/kg/K
@@ -213,6 +226,7 @@ throat_area = 2.54/10000
 
 Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
+<<<<<<< Updated upstream
 # MAIN CHAMBER FUNCTION_________________________________________________________________________________________
 def combustionDifferentialSystemWithOxidizerTank(t,z,
                                                  section_nozzle,
@@ -413,5 +427,239 @@ plt.plot(sol['t'],thrust,color = 'red')
 plt.xlabel('Time, s')
 plt.ylabel('Thrust, N')
 plt.ylim([0,700])
+=======
+# %% Solver Setup
+
+throat_radius_initial = 8
+throat_radius_final = 10
+throat_radius_spacing = 1
+exit_radius_initial = 13
+exit_radius_final = 18
+Exit_radius_spacing = 1
+R_T = range(throat_radius_initial, throat_radius_final, throat_radius_spacing+1)
+R_E = range(exit_radius_initial, exit_radius_final, Exit_radius_spacing+1)
+
+T_curve_area = []
+R_T_choice = []
+R_E_choice = []
+
+for throat_radius in R_T:
+    # NOZZLE DATA___________________________________________________________________________________________________
+    
+    
+    #throat_radius = 9.43 # In mm
+    #exit_radius = 17.5 # In mm
+    throat_area = math.pi * throat_radius ** 2 / 10**6
+    Area_throat = throat_area
+    section_nozzle = Area_throat
+    
+    """
+    M_design = 2.79
+    Area_exit = math.pi * 19.00 ** 2 / 10**6
+    throat_area = math.pi * 8.89 ** 2 / 10**6
+    # %%
+    """
+    
+    # SOLUTION______________________________________________________________________________________________________
+    mo0 = HEOS.rhomass()*volume_oxidizer
+    Uo0 = mo0*HEOS.umass()
+    volume_combustor = Pr_fun(0)*grain_length
+    mc0 = gas.density*volume_combustor
+    Uc0 = mc0*gas.int_energy_mass
+    mYc0 = mc0*gas.Y
+    y0 = np.zeros((5+len(mYc0)))
+    y0[0] = 0
+    y0[1] = mc0
+    y0[2] = Uc0
+    y0[3] = mo0
+    y0[4] = Uo0
+    y0[5:] = mYc0
+    tf = 8 #this cannot be less then the run time. Set it to 20 it will self terminate at the oxidiser run out condition.
+    t_eval = np.linspace(0,tf,1000)
+    
+    sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,
+                    method='LSODA',t_eval=t_eval,events=(tank_empty), 
+                    args=(
+                    section_nozzle,
+                    ambiant_pressure,
+                    volume_oxidizer,
+                    section_injector,
+                    Y_oxidizer,
+                    Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
+                    Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
+                    gas,HEOS),
+                    max_step=0.01)
+    
+#%% exit radius variation loop
+    for exit_radius in R_E:
+        # %%EXTRACTING DATA_______________________________________________________________________________________________
+        pcs = []
+        Tcs = []
+        pos = []
+        Tos = []
+        xos = []
+        mdoto = []
+        mdot_total = []
+        mdotf = []
+        thrust = []
+        TVA = [] # time varience authority
+        MU = []
+        PR = []
+        mdottotf = []
+        C_STAR = []
+        pcs_G = []
+        stop = 0
+        thrust_sum = 0
+        mass_flow_rate_sum = 0
+        gamma = 1.21
+        
+        for i,t in enumerate(sol['t']):
+            # try:
+            z = np.zeros(len(y0))
+            z[0] = sol['y'][0,i]
+            z[1] = sol['y'][1,i]
+            z[2] = sol['y'][2,i]
+            z[3] = sol['y'][3,i]
+            z[4:] = sol['y'][4:,i] 
+            pc,Tc,uc,rhoc,Yc,rho_throat, v_throat, p_throat,po,To,xo,rhoo,mdot_oxidizer,mdot_fuel,gamma,R, Pr_val, mu_val = combustionDifferentialSystemWithOxidizerTank(t,z,
+                                                                                                                     section_nozzle,
+                                                                                                                     ambiant_pressure,
+                                                                                                                     volume_oxidizer,
+                                                                                                                     section_injector,
+                                                                                                                     Y_oxidizer,
+                                                                                                                     Swr_fun,Pr_fun,combustion_final_radius,grain_length,quench_radius,
+                                                                                                                     Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
+                                                                                                                     gas,HEOS,fulloutput=True)
+            pcs.append(pc/1e3)
+            pcs_G.append(pc**((1-gamma)/(2*gamma)))
+            Tcs.append(Tc)
+            pos.append(po/1e3)
+            Tos.append(To)
+            xos.append(xo)
+            MU.append(mu_val)
+            PR.append(Pr_val)
+            mdoto.append(mdot_oxidizer*1e3)
+            mdotf.append(mdot_fuel*1e3)
+            
+            
+            c_star = Area_throat*pc/(mdot_oxidizer+mdot_fuel)
+            C_STAR.append(c_star)
+
+            
+            if mdot_fuel > 0:
+                mdottotf.append(mdot_oxidizer/mdot_fuel)
+            else:
+                mdottotf.append(0)
+            try:
+                thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", throat_radius/1000, exit_radius/1000)
+            except:
+                thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = 0,0,0,0,0,0,0,0
+            thrust.append(thrust_nozzle)
+            #T_exit = Tc/ (1 + (gamma-1)*(M_design**2)/2)
+            #a_exit = math.sqrt(gamma*R*T_exit)
+            #V_exit = M_design*a_exit
+            #m_dot_exit = rho_throat*throat_area*v_throat
+            #P_exit = pc /( (1 + (gamma-1)*(M_design**2)/2)**(gamma/(gamma-1)))
+            if thrust_nozzle > 0:
+                thrust[i] = thrust_nozzle
+            else:
+                if stop < 2:
+                    thrust_finish = i
+                    thrust_time = t
+                    stop =stop + 1
+                thrust[i] = 0
+            thrust_sum = thrust_sum +thrust[i]
+            mass_flow_rate_sum = mass_flow_rate_sum + m_dot_exit
+            TVA.append(t)
+            # except:
+                # print("oh no", t)
+                # tf = t
+                # # t_eval = np.linspace(0,tf,100)
+                # break
+            mdot_total.append(m_dot_exit)
+        fuel_mass = rho_abs*(Pr_fun(combustion_final_radius)-Pr_fun(sol['y'][0]))*grain_length
+        
+        
+        # %%PLOTTING______________________________________________________________________________________________________
+        inchToMM = 25.4
+        combustionAndFlameMax = 88 # mm
+        plt.rcParams["font.family"] = 'Times New Roman'
+        plt.rcParams["font.size"] = 12
+        plt.rcParams['mathtext.fontset'] = "cm"
+        plt.rcParams['mathtext.rm'] = "cm"
+        plt.rcParams['mathtext.it'] = "cm"
+        plt.rcParams['mathtext.bf'] = "cm"
+        fig1 = plt.figure(figsize=(combustionAndFlameMax/inchToMM*2, combustionAndFlameMax/inchToMM*2),dpi=400)
+        gs1 = fig1.add_gridspec(4, 1, hspace=0.1,height_ratios=[3,1,1,1])
+        ax = gs1.subplots(sharex=True)
+        # sol['t'] = TVA
+        ax[0].plot(TVA,Tcs,label='T combustion chamber',color='red')
+        ax[0].plot(TVA,pcs,label='P combustion chamber',color='black')
+        ax[0].plot(TVA,pos,label='P N2O tank',color='blue')
+        ax[1].plot(TVA,mdoto,label='$\dot{m}_{N2O}$',color='blue')
+        ax[1].plot(TVA,mdotf,label='$\dot{m}_{ABS}$',color='black')
+        ax[2].plot(TVA,mdottotf,color='black')
+        ax[3].plot(TVA,fuel_mass*1e3,color='black')
+        ax[0].legend()
+        ax[1].legend()
+        ax[-1].set_xlabel('Time,s')
+        ax[0].set_ylabel('T, K | P, kPa')
+        ax[1].set_ylabel('$\dot{m}, g/s$')
+        ax[2].set_ylabel('Mixture Ratio')
+        ax[3].set_ylabel('Grain mass, g')
+        plt.show()
+        
+        max_thrust = max(thrust)
+        xmax = thrust.index(max_thrust)
+        if thrust_finish ==0:
+            thrust_finish = 1
+        average_thrust = sum(thrust)/thrust_finish
+        max_thrust_text = ('peak thrust '+ str(round(max_thrust))+ ' N')
+        average_thrust_text = ('average thrust '+ str(round(average_thrust))+ ' N')
+        average_thrust_display = average_thrust+10
+        display_point = (max(TVA)/1.5)
+        total_impulse = average_thrust*thrust_time
+        
+        plt.annotate(max_thrust_text, xy = (xmax,max_thrust))
+        plt.annotate(average_thrust_text, xy = (display_point,average_thrust_display))
+        plt.hlines(average_thrust, 0, max(TVA),colors = 'blue')
+        plt.ylim([0,max(thrust)+100])
+        plt.plot(TVA,thrust,color = 'red')
+        plt.xlabel('Time, s')
+        plt.ylabel('Thrust, N')
+        plt.show()
+        
+        
+        plt.plot(TVA, C_STAR,color = 'Blue')
+        plt.xlabel('Time, s')
+        plt.ylabel('Characteristic Velocity, m/s')
+        plt.show()
+        
+        plt.plot(TVA, mdot_total,color = 'Blue')
+        plt.xlabel('Time, s')
+        plt.ylabel('Mass flow rate, Kg/s')
+        plt.show()
+        
+        #print(total_impulse)
+        impulse = np.trapezoid(thrust, x=TVA)
+        #print('Area under P_c curve = ',np.trapezoid(pcs, x=TVA)*1000)
+        #print('Area under P_c^G curve = ',np.trapezoid(pcs_G , x=TVA))
+        print('Area under Thrust curve = ',impulse)
+        R_T_choice.append(throat_radius)
+        R_E_choice.append(exit_radius)
+        T_curve_area.append(impulse)
+        print(throat_radius,exit_radius)
+
+fig = plt.figure()
+ax = plt.axes(projection = '3d')
+surf = ax.plot_surface(R_T_choice, R_E_choice, T_curve_area)
+ax.set_title('Impulse Surface Plot')
+ax.set_xlabel('Throat Radius (mm)')
+ax.set_ylabel('Exit Radius (mm)')
+ax.set_zlabel('Total Impulse (Ns)')
+
+
+
+>>>>>>> Stashed changes
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
