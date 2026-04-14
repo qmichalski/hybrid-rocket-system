@@ -654,6 +654,193 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
         graph.title('regression vs volume circle bore(m^3)')
         graph.show()
         
+    elif typeofgrain == 'star Bore':
+        
+        angle = (2*math.pi)/numberofarms
+        anglearc = (math.pi)-angle
+        arclength = (anglearc/2*math.pi)*(2*math.pi*geometry_scalars)
+        arc_base_half = (math.cos(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalars)
+        arc_base_hight = (math.sin(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalars)
+        triangle_distance_subtraction = math.sin(angle/2)/arc_base_half
+        triangle_subtraction_height = math.cos(angle/2)*triangle_distance_subtraction
+        base_triangle_area_subtraction = arc_base_half*arc_base_hight
+        arcarea = (anglearc/2*math.pi)*(math.pi*geometry_scalars**2)
+        triangle_area_subtraction = (arc_base_half*triangle_subtraction_height)-(arcarea-base_triangle_area_subtraction)
+        areastar = numberofarms*(((armwidth/2)*armheight)+((armwidth/2)*graincentreradius)-triangle_area_subtraction)
+        triangle_distance = math.sin(angle)*(armwidth/2)-triangle_distance_subtraction
+        
+        grainsurfacearea = (numberofarms*2)*(triangle_distance+arclength)
+        graincrosssection = areastar
+        volumeofgrain = graincrosssection*grain_length
+        #print (rectanglesubtraction)
+        #print (boresurfacearea-rectanglesubtraction)
+        #print (grainsurfacearea)
+        
+        #visulise inputed grain
+        x = []
+        y = []
+        x1 = []
+        y1 = []
+        
+        x,y,x1,y1 = graingeometry_finocyl_plotter_inital_shape(grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+        graph.plot(x,y)
+        graph.plot((x),(y))
+        graph.xlabel("x (mm)")
+        graph.ylabel("y (mm)")
+        graph.title('grain inital geometry')
+        graph.grid()
+        graph.show()
+        x.clear()
+        y.clear()
+        #grain calculation
+        final_offset = chamber_outer_radius-(graincentreradius+armheight)
+        combustion_final_radius = final_offset
+        geometry_scalars = numpy.linspace(0,final_offset,50) #adjusts resolution of plot
+        
+        surface_area_star = []
+        grain_cross_section_star = []
+        grain_volume_star = []
+        
+
+        for geometry_scalar in geometry_scalars:
+
+            x,y = grain_geometry_finocyl_plotter(geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+                
+            graph.plot(x,y)
+        
+        graph.xlabel("x (mm)")
+        graph.ylabel("y (mm)")
+        graph.title('regression profile')
+        graph.grid()
+        graph.show()
+        
+        geometry_scalars = numpy.linspace(0,final_offset,1000)
+        for geometry_scalar in geometry_scalars:
+            
+            grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction = grain_geometry_finocyl (geometry_scalar, grain_length, armheight, armwidth, numberofarms, graincentreradius, chamber_outer_radius)
+            surface_area_star.append(grainsurfacearea)
+            grain_cross_section_star.append(graincrosssection)
+            grain_volume_star.append(volumeofgrain)
+        
+        regression_vs_Surface_area_curve = Chebyshev.fit(geometry_scalars ,surface_area_star , deg=120)
+        Swr_fun = regression_vs_Surface_area_curve
+        
+        graph.plot(geometry_scalars ,surface_area_star)
+        graph.xlabel("regression (m)")
+        graph.ylabel("surface area finocyl test (m^2)")
+        graph.title('regression vs surface area')
+        graph.show()
+        
+        regression_vs_grain_cross_section_curve = Chebyshev.fit(geometry_scalars ,grain_cross_section_star , deg=120)
+        Pr_fun = regression_vs_grain_cross_section_curve
+    
+        graph.plot(geometry_scalars ,grain_cross_section_star)
+        graph.xlabel("regression (m)")
+        graph.ylabel("grain cross section finocyl(m^2)")
+        graph.title('regression vs cross section')
+        graph.show()
+        
+        regression_vs_volume_curve = Chebyshev.fit(geometry_scalars ,grain_volume_star , deg=120)
+        v_fun = regression_vs_volume_curve
+    
+        graph.plot(geometry_scalars ,grain_volume_star)
+        graph.xlabel("regression (m)")
+        graph.ylabel("grain volume finocyl(m^3)")
+        graph.title('regression vs volume') 
+        graph.show()
+        
+        print ('grain failure expected at:', final_offset*1000,'mm of regressed material')
+        
+    elif typeofgrain == 'star Bore twisted':
+        angle = math.asin((armwidth/2)/graincentreradius) * 2
+        arclength = angle*graincentreradius
+        arcarea = ((graincentreradius**2)*angle/2)-((1/2)*(graincentreradius**2)*math.sin(angle))
+        rectanglesubtraction = grain_length*arclength*numberofarms
+        boresurfacearea = math.pi*2*graincentreradius*grain_length
+        rectangle_surface_area = (grain_length*armheight*numberofarms*2)+(armwidth*grain_length*numberofarms)
+        grainsurfacearea = (boresurfacearea-rectanglesubtraction)+rectangle_surface_area
+        graincrosssection = math.pi*graincentreradius**2+(armheight*armwidth*numberofarms)- arcarea*numberofarms
+        volumeofgrain = graincrosssection*grain_length
+        #print (rectanglesubtraction)
+        #print (boresurfacearea-rectanglesubtraction)
+        #print (grainsurfacearea)
+        
+        #visulise inputed grain
+        x = []
+        y = []
+        x1 = []
+        y1 = []
+        
+        x,y,x1,y1 = graingeometry_finocyl_plotter_inital_shape(grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+        graph.plot(x,y)
+        graph.plot((x),(y))
+        graph.xlabel("x (mm)")
+        graph.ylabel("y (mm)")
+        graph.title('grain inital geometry')
+        graph.grid()
+        graph.show()
+        x.clear()
+        y.clear()
+        #grain calculation
+        final_offset = chamber_outer_radius-(graincentreradius+armheight)
+        combustion_final_radius = final_offset
+        geometry_scalars = numpy.linspace(0,final_offset,50) #adjusts resolution of plot
+        
+        surface_area_finocyl = []
+        grain_cross_section_finocyl = []
+        grain_volume_finocyl = []
+        
+
+        for geometry_scalar in geometry_scalars:
+
+            x,y = grain_geometry_finocyl_plotter(geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+                
+            graph.plot(x,y)
+        
+        graph.xlabel("x (mm)")
+        graph.ylabel("y (mm)")
+        graph.title('regression profile')
+        graph.grid()
+        graph.show()
+        
+        geometry_scalars = numpy.linspace(0,final_offset,1000)
+        for geometry_scalar in geometry_scalars:
+            
+            grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction = grain_geometry_finocyl (geometry_scalar, grain_length, armheight, armwidth, numberofarms, graincentreradius, chamber_outer_radius)
+            surface_area_finocyl.append(grainsurfacearea)
+            grain_cross_section_finocyl.append(graincrosssection)
+            grain_volume_finocyl.append(volumeofgrain)
+        
+        regression_vs_Surface_area_curve = Chebyshev.fit(geometry_scalars ,surface_area_finocyl , deg=120)
+        Swr_fun = regression_vs_Surface_area_curve
+        
+        graph.plot(geometry_scalars ,surface_area_finocyl)
+        graph.xlabel("regression (m)")
+        graph.ylabel("surface area finocyl test (m^2)")
+        graph.title('regression vs surface area')
+        graph.show()
+        
+        regression_vs_grain_cross_section_curve = Chebyshev.fit(geometry_scalars ,grain_cross_section_finocyl , deg=120)
+        Pr_fun = regression_vs_grain_cross_section_curve
+    
+        graph.plot(geometry_scalars ,grain_cross_section_finocyl)
+        graph.xlabel("regression (m)")
+        graph.ylabel("grain cross section finocyl(m^2)")
+        graph.title('regression vs cross section')
+        graph.show()
+        
+        regression_vs_volume_curve = Chebyshev.fit(geometry_scalars ,grain_volume_finocyl , deg=120)
+        v_fun = regression_vs_volume_curve
+    
+        graph.plot(geometry_scalars ,grain_volume_finocyl)
+        graph.xlabel("regression (m)")
+        graph.ylabel("grain volume finocyl(m^3)")
+        graph.title('regression vs volume') 
+        graph.show()
+        
+        print ('grain failure expected at:', final_offset*1000,'mm of regressed material')
+            
+        
     
             
     

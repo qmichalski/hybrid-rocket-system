@@ -176,8 +176,8 @@ gas = ct.Solution('gri30_highT.yaml')
 #input parameters for grain ignore parameters not used in type of grain in m ___________________________________
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
-typeofgrain = 'Addapted Finocyl'
-numberofarms = 6 #only used for grains with radial features
+typeofgrain = 'stargrain'
+numberofarms = 8 #only used for grains with radial features
 grain_length = 358/1000
 graincentreradius = 10/1000
 armheight = 8/1000 #only used for grains with radial features
@@ -283,11 +283,9 @@ MU = []
 PR = []
 mdottotf = []
 C_STAR = []
-pcs_G = []
 stop = 0
 thrust_sum = 0
 mass_flow_rate_sum = 0
-gamma = 1.21
 
 for i,t in enumerate(sol['t']):
     # try:
@@ -307,7 +305,6 @@ for i,t in enumerate(sol['t']):
                                                                                                              Y_fuel,T_abs,cp_abs,rho_abs,hv,combustion_eff,
                                                                                                              gas,HEOS,fulloutput=True)
     pcs.append(pc/1e3)
-    pcs_G.append(pc**((1-gamma)/(2*gamma)))
     Tcs.append(Tc)
     pos.append(po/1e3)
     Tos.append(To)
@@ -316,7 +313,7 @@ for i,t in enumerate(sol['t']):
     PR.append(Pr_val)
     mdoto.append(mdot_oxidizer*1e3)
     mdotf.append(mdot_fuel*1e3)
-    
+    mdot_total.append(mdot_oxidizer+mdot_fuel)
     
     c_star = Area_throat*pc/(mdot_oxidizer+mdot_fuel)
     C_STAR.append(c_star)
@@ -326,7 +323,7 @@ for i,t in enumerate(sol['t']):
     else:
         mdottotf.append(0)
     try:
-        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", 10.73/1000, 17.5/1000)
+        thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = NM.nozzle_sol_funct(1*ct.one_atm, 100, pc, Tc, "CO2:17.03, H2O:9.45, N2:0.5", 9.43/1000, 17.5/1000)
     except:
         thrust_nozzle, P_throat, T_throat, P_exit, T_exit, v_exit, a_exit, m_dot_exit = 0,0,0,0,0,0,0,0
     thrust.append(thrust_nozzle)
@@ -351,7 +348,7 @@ for i,t in enumerate(sol['t']):
         # tf = t
         # # t_eval = np.linspace(0,tf,100)
         # break
-    mdot_total.append(m_dot_exit)
+    
 fuel_mass = rho_abs*(Pr_fun(combustion_final_radius)-Pr_fun(sol['y'][0]))*grain_length
 
 
@@ -392,6 +389,7 @@ average_thrust_text = ('average thrust '+ str(round(average_thrust))+ ' N')
 average_thrust_display = average_thrust+10
 display_point = (max(TVA)/1.5)
 total_impulse = average_thrust*thrust_time
+print(total_impulse)
 
 plt.annotate(max_thrust_text, xy = (xmax,max_thrust))
 plt.annotate(average_thrust_text, xy = (display_point,average_thrust_display))
@@ -407,15 +405,5 @@ plt.plot(TVA, C_STAR,color = 'Blue')
 plt.xlabel('Time, s')
 plt.ylabel('Characteristic Velocity, m/s')
 plt.show()
-
-plt.plot(TVA, mdot_total,color = 'Blue')
-plt.xlabel('Time, s')
-plt.ylabel('Mass flow rate, Kg/s')
-plt.show()
-
-print(total_impulse)
-print('Area under P_c curve = ',np.trapezoid(pcs, x=TVA)*1000)
-print('Area under P_c^G curve = ',np.trapezoid(pcs_G , x=TVA))
-
 # ax[-1].set_xlim([])
 # ax[-1].set_xscale('log')
