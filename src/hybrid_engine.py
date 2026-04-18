@@ -216,13 +216,19 @@ gas = ct.Solution('gri30_highT.yaml')
 #input parameters for grain ignore parameters not used in type of grain in m ___________________________________
 
 chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
-typeofgrain = 'stargrain'
+typeofgrain = 'star bore' 
 numberofarms = 8 #only used for grains with radial features
-grain_length = 358/1000
-graincentreradius = 10/1000
-armheight = 8/1000 #only used for grains with radial features
+grain_length = 395/1000
+graincentreradius = 5/1000
+armheight = 5/1000 #only used for grains with radial features
 armwidth = 4.229/1000 #only used for grains with radial features
 
+#injector properties ___________________________________
+type_of_injector = "swirl"
+injector_distance = 12.5/1000
+injector_angle = 30*(math.pi/180)#degrees converted to radians
+injector_pitch = math.sin(injector_angle)*(2*math.pi*(injector_distance/2))
+injector_flow_distance = (grain_length/injector_pitch)*(((math.pi*injector_distance)**2)+(injector_pitch**2))**(1/2)
 # FUEL DATA_____________________________________________________________________________________________________
 
 fuel_name = 'ABS'
@@ -262,7 +268,7 @@ hv = 1.8e6 # J/kg
 combustion_eff = 0.8
 quench_radius = 1e-3
 
-Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
+Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.grain_solver(type_of_injector,injector_flow_distance,chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth)
 
 
 # %% Solver Setup
@@ -311,7 +317,7 @@ for throat_radius in R_T:
     y0[3] = mo0
     y0[4] = Uo0
     y0[5:] = mYc0
-    tf = 8 #this cannot be less then the run time. Set it to 20 it will self terminate at the oxidiser run out condition.
+    tf = 20 #DO NOT CHANGE this cannot be less then the run time. Set it to 20 it will self terminate at the oxidiser run out condition.
     t_eval = np.linspace(0,tf,1000)
     
     sol = solve_ivp(combustionDifferentialSystemWithOxidizerTank,[0,tf],y0,

@@ -16,7 +16,234 @@ import sys
 #solver for Addapted Finocyl surface area, cross section , volume
 
 #Functions=
-def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
+def grain_geometry_star(type_of_injector,injector_flow_distance,geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
+
+    armheight = armheight+(geometry_scalar)
+    graincentreradius = graincentreradius+(geometry_scalar)
+    angle = (2*math.pi)/numberofarms
+    armwidth = 2*(math.tan((angle/2))*armheight) 
+    anglearc = (math.pi)-angle
+    arclength = (anglearc/(2*math.pi))*(2*math.pi*geometry_scalar)
+    arc_base_half = (math.cos(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalar)
+    arc_base_hight = (math.sin(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalar)
+    triangle_distance_subtraction = arc_base_half/(math.sin(angle/2))
+    triangle_subtraction_height = math.cos(angle/2)*triangle_distance_subtraction
+    base_triangle_area_subtraction = arc_base_half*arc_base_hight
+    arcarea = (anglearc/(2*math.pi))*(math.pi*geometry_scalar**2)
+    triangle_area_subtraction = (arc_base_half*triangle_subtraction_height)-(arcarea-base_triangle_area_subtraction)
+    areastar = numberofarms*(((armwidth/2)*armheight)+((armwidth/2)*graincentreradius)-triangle_area_subtraction)
+    triangle_distance = math.sin(angle)*(armwidth/2)-triangle_distance_subtraction
+    
+    if type_of_injector == "swirl":
+        grainsurfacearea = (numberofarms*2)*(triangle_distance+arclength)*injector_flow_distance
+    else:
+        grainsurfacearea = (numberofarms*2)*(triangle_distance+arclength)*grain_length
+        
+    graincrosssection = areastar
+    volumeofgrain = graincrosssection*grain_length
+    
+    return(grainsurfacearea,graincrosssection,volumeofgrain,armheight)
+
+def graingeometry_star_plotter_inital_shape (grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius,):
+   import math
+   import numpy
+   import matplotlib.pyplot as graph
+   #plot start
+   chamber_outer_radius = chamber_outer_radius*1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+   graincentreradius = graincentreradius*1000
+   armheight = armheight*1000 #only used for grains with radial features
+   armwidth = armwidth*1000 #only used for grains with radial features
+   
+   angle = (2*math.pi)/numberofarms
+
+   x = []
+   y = []
+   x1 = []
+   y1 = []
+   radiuscurve = []
+   theacurve = []
+   radiuscurve2 =  []
+   theacurve2 = []
+
+   pitwo = 2*math.pi
+   outercurve = numpy.linspace(0, pitwo ,500)
+   for thea in outercurve:
+       x1current = math.sin(thea)*chamber_outer_radius
+       y1current = math.cos(thea)*chamber_outer_radius
+       x1.append(x1current), y1.append(y1current)
+   graph.plot((x1) ,(y1))
+   graph.gca().set_aspect(1.0)
+   ax = graph.gca()
+   ax.set_xlim([-chamber_outer_radius, chamber_outer_radius])
+   ax.set_ylim([-chamber_outer_radius, chamber_outer_radius])
+   armtrack = 0
+   run = 0
+   while armtrack < numberofarms:
+               armtrack = armtrack + 1
+               thea = (armtrack - 1) * angle
+               startheight = graincentreradius
+               xstart = math.cos(thea)*(startheight)
+               ystart = math.sin(thea)*(-armwidth/2)
+               x.append(xstart), y.append(ystart)
+              
+               thea = ((armtrack - 1) * angle) + math.pi/2
+               xlength  = (armheight)
+               ylength  = (armwidth/2)
+               yrun =  math.sin(thea)*(ylength)
+               xrise = math.cos(thea)*(xlength)
+               xendpoint = xstart+xrise
+               yendpoint = ystart+yrun
+               startarmx = numpy.linspace(xstart,xendpoint,100)
+               startarmy = numpy.linspace(ystart,yendpoint,100) #breaks the arm into 100 points
+               for xpoint in startarmx:
+                   x.append(xpoint) 
+               for ypoint in startarmy:
+                   y.append(ypoint)
+               xcurrent = xpoint
+               ycurrent = ypoint
+               
+               #drop for oposite line        
+               thea = (armtrack - 1) * angle
+               ydrop = armheight
+               xdrop = armwidth/2
+               yrun =  math.sin(thea)*(ydrop)
+               xrise = math.cos(thea)*(xdrop)
+               xendpoint = xcurrent+ xrise
+               yendpoint = ycurrent - yrun
+               startarmx = numpy.linspace(xcurrent,xendpoint,100)
+               startarmy = numpy.linspace(ycurrent,yendpoint,100)
+               for xpoint in startarmx:
+                   x.append(xpoint) 
+               for ypoint in startarmy:
+                   y.append(ypoint)
+               xcurrent = xpoint
+               ycurrent = ypoint
+               
+              
+   return x,y,x1,y1
+
+def grain_geometry_star_plotter (geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
+   import math
+   import numpy
+   import matplotlib.pyplot as graph
+   #plot start
+   chamber_outer_radius = chamber_outer_radius*1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+   graincentreradius = graincentreradius*1000
+   armheight = armheight*1000 #only used for grains with radial features
+   armwidth = armwidth*1000 #only used for grains with radial features
+   
+   angle = (2*math.pi)/numberofarms
+   anglearc = (math.pi)-angle
+   arclength = (anglearc/2*math.pi)*(2*math.pi*geometry_scalar)
+   arc_base_half = (math.cos(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalar)
+   arc_base_hight = (math.sin(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalar)
+   triangle_distance_subtraction = math.sin(angle/2)/arc_base_half
+   triangle_subtraction_height = math.cos(angle/2)*triangle_distance_subtraction
+   base_triangle_area_subtraction = arc_base_half*arc_base_hight
+   triangle_distance = math.sin(angle)*(armwidth/2)-triangle_distance_subtraction
+   burn_fillet = geometry_scalar
+
+   x = []
+   y = []
+   x1 = []
+   y1 = []
+   radiuscurve = []
+   theacurve = []
+   radiuscurve2 =  []
+   theacurve2 = []
+
+   pitwo = 2*math.pi
+   outercurve = numpy.linspace(0, pitwo ,500)
+   for thea in outercurve:
+       x1current = math.sin(thea)*chamber_outer_radius
+       y1current = math.cos(thea)*chamber_outer_radius
+       x1.append(x1current), y1.append(y1current)
+   graph.plot((x1) ,(y1))
+   graph.gca().set_aspect(1.0)
+   ax = graph.gca()
+   ax.set_xlim([-chamber_outer_radius, chamber_outer_radius])
+   ax.set_ylim([-chamber_outer_radius, chamber_outer_radius])
+   armtrack = 0
+   run = 0
+   while armtrack < numberofarms:
+               armtrack = armtrack + 1
+               thea = (armtrack - 1) * angle
+               startheight = graincentreradius
+               xstart = math.cos(thea)*(startheight)
+               ystart = math.sin(thea)*(-armwidth/2)
+               x.append(xstart), y.append(ystart)
+              
+               thea = ((armtrack - 1) * angle) + math.pi/2
+               xlength  = (armheight)
+               ylength  = (armwidth/2)
+               yrun =  math.sin(thea)*(ylength)
+               xrise = math.cos(thea)*(xlength)
+               xendpoint = xstart+xrise
+               yendpoint = ystart+yrun
+               startarmx = numpy.linspace(xstart,xendpoint,100)
+               startarmy = numpy.linspace(ystart,yendpoint,100) #breaks the arm into 100 points
+               for xpoint in startarmx:
+                   x.append(xpoint) 
+               for ypoint in startarmy:
+                   y.append(ypoint)
+               xcurrent = xpoint
+               ycurrent = ypoint
+               
+               ypoint2 =ypoint - armwidth
+               
+               #burn radius calculations
+               if run == 0:
+                   curve = numpy.linspace(0, burn_fillet ,500)
+                   for curvey in curve:
+                       curvex = ((burn_fillet**2)-(curvey**2))**(1/2)
+                       ystore = ypoint+curvey
+                       xstore = startheight-(burn_fillet-curvex)
+                       r = ((xstore**2)+(ystore**2))**(1/2)
+                       theac = math.acos(xstore/r)
+                       radiuscurve.append(r)
+                       theacurve.append(theac)
+                       
+                   curve2 = numpy.linspace(burn_fillet,0 ,500)
+                   for curvey in curve2:
+                       curvex = ((burn_fillet**2)-(curvey**2))**(1/2)
+                       ystore = ypoint2-curvey
+                       xstore = startheight-(burn_fillet-curvex)
+                       r = ((xstore**2)+(ystore**2))**(1/2)
+                       theac = math.asin(ystore/r)
+                       radiuscurve2.append(r)
+                       theacurve2.append(theac)
+                       run = 1
+                       
+               curvey = 0
+               #burn fillet when needed
+               if burn_fillet > 0:
+                   for i in range (0, 500):
+                       angle_update = (armtrack - 1) * angle
+                       thea2 = theacurve[i] + angle_update
+                       xcurrent = math.cos(thea2)*radiuscurve[i]
+                       ycurrent = math.sin(thea2)*radiuscurve[i]
+                       x.append(xcurrent)
+                       y.append(ycurrent)
+               #drop for oposite line        
+               thea = (armtrack - 1) * angle
+               ydrop = armheight
+               xdrop = armwidth/2
+               yrun =  math.sin(thea)*(ydrop)
+               xrise = math.cos(thea)*(xdrop)
+               xendpoint = xcurrent+ xrise
+               yendpoint = ycurrent - yrun
+               startarmx = numpy.linspace(xcurrent,xendpoint,100)
+               startarmy = numpy.linspace(ycurrent,yendpoint,100)
+               for xpoint in startarmx:
+                   x.append(xpoint) 
+               for ypoint in startarmy:
+                   y.append(ypoint)
+               xcurrent = xpoint
+               ycurrent = ypoint
+               
+              
+   return x,y,x1,y1
+def grain_geometry_finocyl_plotter (type_of_injector,injector_flow_distance,geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
    #plot start
    geometry_scalar = geometry_scalar*1000
    chamber_outer_radius = chamber_outer_radius*1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
@@ -309,7 +536,7 @@ def grain_geometry_finocyl_plotter (geometry_scalar,grainlength,armheight,armwid
        return x,y     
    
 
-def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius,):
+def graingeometry_finocyl_plotter_inital_shape (grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius,):
    import math
    import numpy
    import matplotlib.pyplot as graph
@@ -489,7 +716,7 @@ def graingeometry_finocyl_plotter_inital_shape (grainlength,armheight,armwidth,n
                   # curvethea = numpy.linspace(thea1,thea2,500)
                #armtrack = armtrack+1
    return x,y,x1,y1
-def grain_geometry_finocyl(geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
+def grain_geometry_finocyl(type_of_injector,injector_flow_distance,geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius):
     
     graincentreradiusupdate = graincentreradius + geometry_scalar
     a=(((graincentreradius+geometry_scalar)**2)-(armwidth/2)**2)**(1/2)-((graincentreradius**2-(armwidth/2)**2))**(1/2)
@@ -527,7 +754,7 @@ def grain_geometry_finocyl(geometry_scalar,grain_length,armheight,armwidth,numbe
         armheight = armheight+(chamber_outer_radius-(armheight+graincentreradius))
     """
 #start conditions
-def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth):
+def grain_solver(type_of_injector,injector_flow_distance,chamber_outer_radius,typeofgrain,numberofarms,grain_length,graincentreradius,armheight,armwidth):
     if numberofarms == 0:
         
         typeofgrain = 'Straight Bore'
@@ -575,7 +802,7 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
     
             for geometry_scalar in geometry_scalars:
     
-                x,y = grain_geometry_finocyl_plotter(geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+                x,y = grain_geometry_finocyl_plotter(type_of_injector,injector_flow_distance,geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
                     
                 graph.plot(x,y)
             
@@ -588,7 +815,7 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
             geometry_scalars = numpy.linspace(0,final_offset,1000)
             for geometry_scalar in geometry_scalars:
                 
-                grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction = grain_geometry_finocyl (geometry_scalar, grain_length, armheight, armwidth, numberofarms, graincentreradius, chamber_outer_radius)
+                grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction = grain_geometry_finocyl (type_of_injector,injector_flow_distance,geometry_scalar, grain_length, armheight, armwidth, numberofarms, graincentreradius, chamber_outer_radius)
                 surface_area_finocyl.append(grainsurfacearea)
                 grain_cross_section_finocyl.append(graincrosssection)
                 grain_volume_finocyl.append(volumeofgrain)
@@ -654,27 +881,24 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
         graph.title('regression vs volume circle bore(m^3)')
         graph.show()
         
-    elif typeofgrain == 'star Bore':
+    elif typeofgrain == 'star bore':
         
         angle = (2*math.pi)/numberofarms
-        anglearc = (math.pi)-angle
-        arclength = (anglearc/2*math.pi)*(2*math.pi*geometry_scalars)
-        arc_base_half = (math.cos(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalars)
-        arc_base_hight = (math.sin(math.pi-(anglearc/2)-(math.pi/2))*geometry_scalars)
-        triangle_distance_subtraction = math.sin(angle/2)/arc_base_half
-        triangle_subtraction_height = math.cos(angle/2)*triangle_distance_subtraction
-        base_triangle_area_subtraction = arc_base_half*arc_base_hight
-        arcarea = (anglearc/2*math.pi)*(math.pi*geometry_scalars**2)
-        triangle_area_subtraction = (arc_base_half*triangle_subtraction_height)-(arcarea-base_triangle_area_subtraction)
-        areastar = numberofarms*(((armwidth/2)*armheight)+((armwidth/2)*graincentreradius)-triangle_area_subtraction)
-        triangle_distance = math.sin(angle)*(armwidth/2)-triangle_distance_subtraction
-        
-        grainsurfacearea = (numberofarms*2)*(triangle_distance+arclength)
+        armwidth = 2*(math.tan((angle/2))*armheight) 
+        areastar = numberofarms*(((armwidth/2)*armheight)+((armwidth/2)*graincentreradius))
+        triangle_distance = (armwidth/2)/math.sin(angle/2)
+
+        if type_of_injector == "swirl":
+            grainsurfacearea = (numberofarms*2)*((triangle_distance)*injector_flow_distance)
+        else:
+            grainsurfacearea = (numberofarms*2)*((triangle_distance)*grain_length)
+            
         graincrosssection = areastar
         volumeofgrain = graincrosssection*grain_length
+
         #print (rectanglesubtraction)
         #print (boresurfacearea-rectanglesubtraction)
-        #print (grainsurfacearea)
+        print (grainsurfacearea)
         
         #visulise inputed grain
         x = []
@@ -682,7 +906,7 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
         x1 = []
         y1 = []
         
-        x,y,x1,y1 = graingeometry_finocyl_plotter_inital_shape(grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+        x,y,x1,y1 = graingeometry_star_plotter_inital_shape(grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
         graph.plot(x,y)
         graph.plot((x),(y))
         graph.xlabel("x (mm)")
@@ -701,10 +925,10 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
         grain_cross_section_star = []
         grain_volume_star = []
         
-
+        '''
         for geometry_scalar in geometry_scalars:
-
-            x,y = grain_geometry_finocyl_plotter(geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
+            
+            x,y = grain_geometry_star_plotter(geometry_scalar,grain_length,armheight,armwidth,numberofarms,graincentreradius,chamber_outer_radius)
                 
             graph.plot(x,y)
         
@@ -713,14 +937,16 @@ def grain_solver(chamber_outer_radius,typeofgrain,numberofarms,grain_length,grai
         graph.title('regression profile')
         graph.grid()
         graph.show()
-        
+        '''
+
         geometry_scalars = numpy.linspace(0,final_offset,1000)
         for geometry_scalar in geometry_scalars:
             
-            grainsurfacearea,graincrosssection,volumeofgrain,armheight,armwidthupdate,graincentreradiusupdate,rectanglesubtraction = grain_geometry_finocyl (geometry_scalar, grain_length, armheight, armwidth, numberofarms, graincentreradius, chamber_outer_radius)
+            grainsurfacearea,graincrosssection,volumeofgrain,armheight = grain_geometry_star(type_of_injector,injector_flow_distance,geometry_scalar, grain_length, armheight, armwidth, numberofarms, graincentreradius, chamber_outer_radius)
             surface_area_star.append(grainsurfacearea)
             grain_cross_section_star.append(graincrosssection)
             grain_volume_star.append(volumeofgrain)
+            print(graincrosssection)
         
         regression_vs_Surface_area_curve = Chebyshev.fit(geometry_scalars ,surface_area_star , deg=120)
         Swr_fun = regression_vs_Surface_area_curve
