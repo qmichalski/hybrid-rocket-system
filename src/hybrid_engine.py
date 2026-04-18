@@ -272,15 +272,25 @@ Swr_fun,Pr_fun,v_fun,combustion_final_radius,grain_length = grain_geometry_lib.g
 
 
 # %% Solver Setup
+choice = input('Enable Nozzle Solver? (y/n)')
 
-throat_radius_initial = 8
-throat_radius_final = 10
-throat_radius_spacing = 1
-exit_radius_initial = 13
-exit_radius_final = 18
-Exit_radius_spacing = 1
-R_T = range(throat_radius_initial, throat_radius_final, throat_radius_spacing+1)
-R_E = range(exit_radius_initial, exit_radius_final, Exit_radius_spacing+1)
+if choice=='y':
+    throat_radius_initial = 8
+    throat_radius_final = 10
+    throat_radius_spacing = 1
+    exit_radius_initial = 13
+    exit_radius_final = 18
+    Exit_radius_spacing = 1
+    R_T = range(throat_radius_initial, throat_radius_final, throat_radius_spacing+1)
+    R_E = range(exit_radius_initial, exit_radius_final, Exit_radius_spacing+1)
+    
+elif choice =='n':
+    R_T = [9.43]
+    R_E = [17.5]
+    
+else:
+    print('InputError : Incorrect Input. Re-run the code!!')
+    quit()
 
 T_curve_area = []
 R_T_choice = []
