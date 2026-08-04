@@ -99,7 +99,7 @@ def combustionDifferentialSystemWithOxidizerTank(t,z,
     #calculating burnt gas properties
     gas.TPY = To,1e5,Y_oxidizer
     h_oxidizer = gas.enthalpy_mass
-    gas.TPY = 300,1e5,Y_fuel
+    gas.TPY = 290,1e5,Y_fuel
     h_fuel = gas.enthalpy_mass
     
 
@@ -215,13 +215,13 @@ gas = ct.Solution('gri30_highT.yaml')
 
 #input parameters for grain ignore parameters not used in type of grain in m ___________________________________
 
-chamber_outer_radius = 25.76/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
-typeofgrain = 'star bore' 
+chamber_outer_radius = (58/2)/1000 #unless for some strange reason you are making a pressure vessel out of a non round cross section.
+typeofgrain = 'Addapted Finocyl' 
 numberofarms = 8 #only used for grains with radial features
-grain_length = 395/1000
-graincentreradius = 5/1000
-armheight = 5/1000 #only used for grains with radial features
-armwidth = 4.229/1000 #only used for grains with radial features
+grain_length = 390/1000
+graincentreradius = 12.5/1000
+armheight = 6/1000 #only used for grains with radial features
+armwidth = 2/1000 #only used for grains with radial features
 
 #injector properties ___________________________________
 type_of_injector = "swirl"
@@ -285,8 +285,8 @@ if choice=='y':
     R_E = range(exit_radius_initial, exit_radius_final, Exit_radius_spacing+1)
     
 elif choice =='n':
-    R_T = [9.43]
-    R_E = [17.5]
+    R_T = [8]
+    R_E = [14.5]
     
 else:
     print('InputError : Incorrect Input. Re-run the code!!')
